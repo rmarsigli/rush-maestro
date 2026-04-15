@@ -21,8 +21,8 @@ Your goal is to generate a structured JSON payload containing Responsive Search 
 ### 1. Brand Check
 
 Check if `brand.json` exists for the given client in `./clients/{client_id}/`:
-- **Found:** Load it silently. Pay special attention to the `google_ads_id` if present.
-- **Not found:** Ask the user to run the onboarding process using the social media agent first.
+- **Found:** Load it silently. Note `google_ads_id` (for live API access) and `website_url` (required for deploy — warn the user if missing).
+- **Not found:** Ask the user to run the onboarding process using the `create-client` skill first.
 
 ### 2. Campaign Structuring
 
