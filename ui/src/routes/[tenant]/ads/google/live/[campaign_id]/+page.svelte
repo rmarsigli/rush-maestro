@@ -278,7 +278,6 @@
 	<div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
 
 		<!-- Impressions -->
-		{@const dImp = deltas.impressions}
 		<div class="bg-white dark:bg-slate-900 p-5 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm relative overflow-hidden group hover:border-indigo-200 dark:hover:border-indigo-800 transition-colors">
 			<div class="absolute right-0 top-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
 				<Activity class="w-16 h-16 text-indigo-500" />
@@ -291,21 +290,20 @@
 			</div>
 			<div class="text-3xl font-bold text-slate-900 dark:text-white relative z-10">{data.campaign.metrics.impressions}</div>
 			<div class="text-xs font-semibold text-slate-400 mt-1 relative z-10 tracking-wide uppercase">Share: {data.campaign.metrics.searchImpressionShare}</div>
-			{#if dImp.dir !== 'flat'}
+			{#if deltas.impressions.dir !== 'flat'}
 				<div class="flex items-center gap-1 mt-2 relative z-10">
-					{#if dImp.dir === 'up'}
+					{#if deltas.impressions.dir === 'up'}
 						<TrendingUp class="w-3 h-3 text-emerald-500" />
-						<span class="text-xs font-bold text-emerald-600 dark:text-emerald-400">{dImp.pct} vs sem. ant.</span>
+						<span class="text-xs font-bold text-emerald-600 dark:text-emerald-400">{deltas.impressions.pct} vs sem. ant.</span>
 					{:else}
 						<TrendingDown class="w-3 h-3 text-red-400" />
-						<span class="text-xs font-bold text-red-500 dark:text-red-400">{dImp.pct} vs sem. ant.</span>
+						<span class="text-xs font-bold text-red-500 dark:text-red-400">{deltas.impressions.pct} vs sem. ant.</span>
 					{/if}
 				</div>
 			{/if}
 		</div>
 
 		<!-- Clicks -->
-		{@const dClk = deltas.clicks}
 		<div class="bg-white dark:bg-slate-900 p-5 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm relative overflow-hidden group hover:border-blue-200 dark:hover:border-blue-800 transition-colors">
 			<div class="absolute right-0 top-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
 				<MousePointerClick class="w-16 h-16 text-blue-500" />
@@ -318,21 +316,20 @@
 			</div>
 			<div class="text-3xl font-bold text-slate-900 dark:text-white relative z-10">{data.campaign.metrics.clicks}</div>
 			<div class="text-xs font-semibold text-slate-400 mt-1 relative z-10 tracking-wide uppercase">CTR: {data.campaign.metrics.ctr}</div>
-			{#if dClk.dir !== 'flat'}
+			{#if deltas.clicks.dir !== 'flat'}
 				<div class="flex items-center gap-1 mt-2 relative z-10">
-					{#if dClk.dir === 'up'}
+					{#if deltas.clicks.dir === 'up'}
 						<TrendingUp class="w-3 h-3 text-emerald-500" />
-						<span class="text-xs font-bold text-emerald-600 dark:text-emerald-400">{dClk.pct} vs sem. ant.</span>
+						<span class="text-xs font-bold text-emerald-600 dark:text-emerald-400">{deltas.clicks.pct} vs sem. ant.</span>
 					{:else}
 						<TrendingDown class="w-3 h-3 text-red-400" />
-						<span class="text-xs font-bold text-red-500 dark:text-red-400">{dClk.pct} vs sem. ant.</span>
+						<span class="text-xs font-bold text-red-500 dark:text-red-400">{deltas.clicks.pct} vs sem. ant.</span>
 					{/if}
 				</div>
 			{/if}
 		</div>
 
 		<!-- Cost -->
-		{@const dCost = deltas.cost}
 		<div class="bg-white dark:bg-slate-900 p-5 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm relative overflow-hidden group hover:border-emerald-200 dark:hover:border-emerald-800 transition-colors">
 			<div class="absolute right-0 top-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
 				<DollarSign class="w-16 h-16 text-emerald-500" />
@@ -344,21 +341,20 @@
 				Total Cost
 			</div>
 			<div class="text-3xl font-bold text-slate-900 dark:text-white relative z-10">${data.campaign.metrics.cost}</div>
-			{#if dCost.dir !== 'flat'}
+			{#if deltas.cost.dir !== 'flat'}
 				<div class="flex items-center gap-1 mt-2 relative z-10">
-					{#if dCost.dir === 'up'}
+					{#if deltas.cost.dir === 'up'}
 						<TrendingUp class="w-3 h-3 text-emerald-500" />
-						<span class="text-xs font-bold text-emerald-600 dark:text-emerald-400">{dCost.pct} vs sem. ant.</span>
+						<span class="text-xs font-bold text-emerald-600 dark:text-emerald-400">{deltas.cost.pct} vs sem. ant.</span>
 					{:else}
 						<TrendingDown class="w-3 h-3 text-red-400" />
-						<span class="text-xs font-bold text-red-500 dark:text-red-400">{dCost.pct} vs sem. ant.</span>
+						<span class="text-xs font-bold text-red-500 dark:text-red-400">{deltas.cost.pct} vs sem. ant.</span>
 					{/if}
 				</div>
 			{/if}
 		</div>
 
 		<!-- Conversions -->
-		{@const dConv = deltas.conversions}
 		<div class="bg-white dark:bg-slate-900 p-5 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm relative overflow-hidden group hover:border-amber-200 dark:hover:border-amber-800 transition-colors">
 			<div class="absolute right-0 top-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
 				<Target class="w-16 h-16 text-amber-500" />
@@ -371,14 +367,14 @@
 			</div>
 			<div class="text-3xl font-bold text-slate-900 dark:text-white relative z-10">{data.campaign.metrics.conversions}</div>
 			<div class="text-xs font-semibold text-slate-400 mt-1 relative z-10 tracking-wide uppercase">CPA: ${data.campaign.metrics.cpa}</div>
-			{#if dConv.dir !== 'flat'}
+			{#if deltas.conversions.dir !== 'flat'}
 				<div class="flex items-center gap-1 mt-2 relative z-10">
-					{#if dConv.dir === 'up'}
+					{#if deltas.conversions.dir === 'up'}
 						<TrendingUp class="w-3 h-3 text-emerald-500" />
-						<span class="text-xs font-bold text-emerald-600 dark:text-emerald-400">{dConv.pct} vs sem. ant.</span>
+						<span class="text-xs font-bold text-emerald-600 dark:text-emerald-400">{deltas.conversions.pct} vs sem. ant.</span>
 					{:else}
 						<TrendingDown class="w-3 h-3 text-red-400" />
-						<span class="text-xs font-bold text-red-500 dark:text-red-400">{dConv.pct} vs sem. ant.</span>
+						<span class="text-xs font-bold text-red-500 dark:text-red-400">{deltas.conversions.pct} vs sem. ant.</span>
 					{/if}
 				</div>
 			{/if}
