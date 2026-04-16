@@ -50,7 +50,6 @@ export async function getDetailedCampaign(customerId?: string, campaignId?: stri
                 metrics.cost_micros,
                 metrics.conversions,
                 metrics.conversions_value,
-                metrics.conversions_value_per_cost,
                 metrics.cost_per_conversion,
                 metrics.ctr,
                 metrics.interaction_rate,
@@ -118,7 +117,11 @@ export async function getDetailedCampaign(customerId?: string, campaignId?: stri
                 clicks: c.metrics?.clicks?.toString() || '0',
                 conversions: c.metrics?.conversions?.toString() || '0',
                 conversionsValue: c.metrics?.conversions_value ? Number(c.metrics.conversions_value).toFixed(2) : '0.00',
-                roas: c.metrics?.conversions_value_per_cost ? (Number(c.metrics.conversions_value_per_cost) * 100).toFixed(2) + '%' : '0%',
+                roas: (() => {
+                    const cost = Number(c.metrics?.cost_micros || 0) / 1_000_000;
+                    const value = Number(c.metrics?.conversions_value || 0);
+                    return cost > 0 ? ((value / cost) * 100).toFixed(2) + '%' : '0%';
+                })(),
                 interactionRate: c.metrics?.interaction_rate ? (Number(c.metrics.interaction_rate) * 100).toFixed(2) + '%' : '0%',
                 searchImpressionShare: c.metrics?.search_impression_share ? (Number(c.metrics.search_impression_share) * 100).toFixed(2) + '%' : '< 10%',
                 cost: c.metrics?.cost_micros ? (Number(c.metrics.cost_micros) / 1000000).toFixed(2) : '0.00',
