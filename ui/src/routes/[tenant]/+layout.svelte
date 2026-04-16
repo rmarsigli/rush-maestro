@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { page } from '$app/stores';
-	import { Share2, Search, Monitor, Settings, Menu, X } from 'lucide-svelte';
+	import { Share2, Search, Monitor, Settings, Menu, X, FileText } from 'lucide-svelte';
 	import type { LayoutData } from './$types';
 
 	let { data, children } = $props<{ data: LayoutData, children: any }>();
@@ -49,9 +49,15 @@
 					>
 						<Monitor class="w-4 h-4" /> Meta Ads
 					</a>
+					<a
+						href="/{data.tenant}/reports"
+						class="flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium transition-colors {currentPath.includes('/reports') ? 'bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'}"
+					>
+						<FileText class="w-4 h-4" /> Relatórios
+					</a>
 					<div class="w-px h-6 bg-slate-200 dark:bg-slate-700 mx-2"></div>
-					<a 
-						href="/{data.tenant}/settings" 
+					<a
+						href="/{data.tenant}/settings"
 						class="flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium transition-colors {currentPath.includes('/settings') ? 'bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'}"
 					>
 						<Settings class="w-4 h-4" /> Settings
@@ -95,8 +101,14 @@
 				>
 					<Monitor class="w-5 h-5" /> Meta Ads
 				</a>
-				<a 
-					href="/{data.tenant}/settings" 
+				<a
+					href="/{data.tenant}/reports"
+					class="flex items-center gap-3 px-3 py-2 rounded-md text-base font-medium {currentPath.includes('/reports') ? 'bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600' : 'text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800'}"
+				>
+					<FileText class="w-5 h-5" /> Relatórios
+				</a>
+				<a
+					href="/{data.tenant}/settings"
 					class="flex items-center gap-3 px-3 py-2 rounded-md text-base font-medium {currentPath.includes('/settings') ? 'bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600' : 'text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800'}"
 				>
 					<Settings class="w-5 h-5" /> Settings
