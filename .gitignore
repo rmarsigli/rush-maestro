@@ -24,6 +24,9 @@ ui/test-*.ts
 *.swp
 *.swo
 
+# Project notes — local planning docs, not part of the repo
+.project/
+
 # OS
 .DS_Store
 Thumbs.db
