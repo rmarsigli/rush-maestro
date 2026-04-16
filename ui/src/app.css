@@ -1,7 +1,2 @@
 @import "tailwindcss";
 @plugin "@tailwindcss/typography";
-
-@media print {
-  html, body { height: auto !important; overflow: visible !important; }
-  main { overflow: visible !important; height: auto !important; flex: none !important; }
-}
