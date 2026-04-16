@@ -18,6 +18,12 @@ This repository acts as a local, headless content management system and automati
    - Generates **Markdown Reports for AI**, exporting historical data and Ad Group breakdowns so agents can suggest optimizations.
 3. **Gemini CLI Skills:** Embedded procedural skills (`.skill` files) that teach the CLI agent how to interact with the workspace automatically.
 
+### Roadmap
+
+  - **Scheduling:** Autonomous agents running daily monitoring and weekly reports via Claude Code remote triggers
+  - **Approval UI:** Generated content surfaced for one-click approval without touching the terminal
+  - **Orchestrator:** A marketing director agent that reads all clients, prioritizes, and delegates to specialized sub-agents
+
 ## Directory Structure
 
 ```text
