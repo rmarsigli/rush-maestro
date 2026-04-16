@@ -10,7 +10,7 @@ When the user asks to see or list campaigns for a client:
 2. Create a temp script at the project root:
    ```typescript
    import { ads } from './scripts/lib/ads.ts';
-   const res = await ads.portico.query(`
+   const res = await ads['your-client'].query(`
      SELECT
        campaign.id, campaign.name, campaign.status,
        campaign.bidding_strategy_type,

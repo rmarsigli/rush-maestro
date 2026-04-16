@@ -33,10 +33,10 @@ This repository acts as a local, headless content management system and automati
 │   └── src/
 │       └── routes/[tenant]/              # Multi-tenant UI routing
 └── clients/
-    ├── bracar-pneus/
+    ├── client-a/
     │   ├── brand.json                    # Client configuration, tone, and Google Ads ID
     │   └── posts/                        # JSON post drafts and media
-    └── portico/
+    └── client-b/
         ├── brand.json
         ├── ads/
         │   └── google/                   # Google Ads JSON drafts

@@ -19,9 +19,13 @@ const _client = new GoogleAdsApi({
   developer_token: process.env.GOOGLE_ADS_DEVELOPER_TOKEN!,
 });
 
-export const CLIENTS = {
-  portico: 'CUSTOMER_ID_REDACTED',
-} as const;
+/**
+ * Map your client slugs to their Google Ads customer IDs.
+ * IDs come from clients/[tenant]/brand.json → google_ads_id.
+ * Example:
+ *   acme: '123-456-7890',
+ */
+export const CLIENTS: Record<string, string> = {};
 
 export type ClientName = keyof typeof CLIENTS;
 
@@ -35,10 +39,10 @@ export function getCustomer(customerId: string) {
   });
 }
 
-/** Pre-built customers for known clients. */
-export const ads = {
-  portico: getCustomer(CLIENTS.portico),
-} satisfies Record<ClientName, ReturnType<typeof getCustomer>>;
+/** Pre-built customers for all entries in CLIENTS. */
+export const ads = Object.fromEntries(
+  Object.entries(CLIENTS).map(([name, id]) => [name, getCustomer(id)])
+) as Record<ClientName, ReturnType<typeof getCustomer>>;
 
 /** R$ → micros */
 export const micros = (brl: number) => brl * 1_000_000;

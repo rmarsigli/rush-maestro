@@ -10,7 +10,7 @@ When the user asks for metrics or a report for a specific campaign:
 2. Create a temp script at the project root:
    ```typescript
    import { ads, fromMicros } from './scripts/lib/ads.ts';
-   const res = await ads.portico.query(`
+   const res = await ads['your-client'].query(`
      SELECT
        campaign.id, campaign.name, campaign.status,
        metrics.impressions, metrics.clicks, metrics.cost_micros,

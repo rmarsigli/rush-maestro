@@ -10,7 +10,7 @@ When the user asks to optimize ROAS or fix a bleeding campaign:
 2. Fetch live ad group metrics via temp script at project root:
    ```typescript
    import { ads, fromMicros } from './scripts/lib/ads.ts';
-   const res = await ads.portico.query(`
+   const res = await ads['your-client'].query(`
      SELECT
        ad_group.id, ad_group.name, ad_group.status,
        metrics.impressions, metrics.clicks,
@@ -26,5 +26,5 @@ When the user asks to optimize ROAS or fix a bleeding campaign:
    - **High performer:** conversions > 0 and viable CPA
    - **Bleeding:** high spend + clicks, 0 conversions
 5. Present findings and proposed action to the user. Wait for explicit confirmation.
-6. Only after confirmed: create another temp script that calls `ads.portico.adGroups.update([{ resource_name: '...', status: enums.AdGroupStatus.PAUSED }])`. Run and confirm.
+6. Only after confirmed: create another temp script that calls `ads['your-client'].adGroups.update([{ resource_name: '...', status: enums.AdGroupStatus.PAUSED }])`. Run and confirm.
 7. Log the change in the client's report file under `clients/<client_id>/reports/`.

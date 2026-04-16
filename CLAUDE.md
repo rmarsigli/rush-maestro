@@ -12,18 +12,10 @@ Sistema local de gestão de marketing com suporte a múltiplos clientes. Combina
 
 ## Clientes
 
-### Grupo Pórtico (`clients/portico/`)
-- **Segmento:** Reformas residenciais de alto padrão, Porto Alegre-RS
-- **Google Ads Customer ID:** `CUSTOMER-ID-REDACTED` (limpo: `CUSTOMER_ID_REDACTED`)
-- **Site:** your-client-site.com
-- **Tags no site:** GA4 `GA4_ID_REDACTED`, Google Tag `GTAG_ID_REDACTED` (sem GTM)
-- **Canais ativos:** Google Ads + Social Media (Instagram/Facebook)
-- **Relatórios:** `clients/portico/reports/`
+Cada cliente vive em `clients/[tenant]/`. Use `/create-client` para criar novos.
 
-### Bracar Pneus (`clients/bracar-pneus/`)
-- **Segmento:** Pneus e suspensão, Caraguatatuba e São Sebastião-SP
-- **Canais ativos:** Social Media (Instagram/Facebook — mesmo post para os dois)
-- **Relatórios:** `clients/bracar-pneus/reports/`
+O `google_ads_id` de cada cliente fica em `clients/[tenant]/brand.json`.
+IDs reais, tracking tags e URLs de clientes **nunca** vão neste arquivo — ficam só no `brand.json` e no `.env`.
 
 ## Estrutura de Diretórios
 
