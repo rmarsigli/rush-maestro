@@ -3,7 +3,7 @@
  * via the Meta Graph API using the Instagram Container API flow.
  *
  * Usage: bun scripts/publish-social-post.ts <client_id> <post_filename>
- * Example: bun scripts/publish-social-post.ts portico 2025-04-15_lancamento.json
+ * Example: bun scripts/publish-social-post.ts <tenant> 2025-04-15_lancamento.json
  *
  * Required in .env:
  *   META_PAGE_ACCESS_TOKEN

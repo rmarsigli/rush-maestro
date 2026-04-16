@@ -69,8 +69,8 @@ This repository provides specific personas (agents) built to automate different 
 
 ## Typical Workflow
 
-1. **Generation:** Ask the CLI agent to create content for a specific client (e.g., "Create a Search Network campaign for Portico"). The agent writes `.json` files into `clients/portico/ads/google/` with the status `draft`.
-2. **Review:** Open the Svelte UI on your browser at `http://localhost:5173/portico/ads/google`. It will list all drafts.
+1. **Generation:** Ask the CLI agent to create content for a specific client (e.g., "Create a Search Network campaign for Acme"). The agent writes `.json` files into `clients/acme/ads/google/` with the status `draft`.
+2. **Review:** Open the Svelte UI on your browser at `http://localhost:5173/acme/ads/google`. It will list all drafts.
 3. **Curation:** Review the texts, budgets, and ad groups. For social media, attach any necessary images.
 4. **Approval & Deployment:** Click "Approve" in the UI. (Future implementation: deployment scripts will push these approved JSONs to Meta/Google APIs).
 5. **Analysis:** Use the "Live Campaign Details" page to view interactive charts, or click **"Export Markdown for AI"** to generate a report file to feed back into the agent for optimization.

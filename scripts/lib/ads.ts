@@ -6,7 +6,7 @@
  *
  * Usage:
  *   import { ads, enums, micros, fromMicros } from './lib/ads.ts'
- *   const campaigns = await ads.portico.query(`SELECT ...`)
+ *   const campaigns = await ads['your-client'].query(`SELECT ...`)
  */
 
 import { GoogleAdsApi, enums, toMicros } from 'google-ads-api';

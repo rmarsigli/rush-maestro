@@ -47,8 +47,8 @@ Todos os scripts rodam via `bun run <arquivo>` a partir da raiz do projeto. Bun 
 
 ```bash
 bun run scripts/test-ads-connection.ts
-bun run scripts/deploy-google-ads.ts clients/portico/ads/google/<campaign>.json
-bun run scripts/publish-social-post.ts portico 2025-04-15_lancamento.json
+bun run scripts/deploy-google-ads.ts clients/<tenant>/ads/google/<campaign>.json
+bun run scripts/publish-social-post.ts <tenant> 2025-04-15_lancamento.json
 ```
 
 **Scripts temporários de análise** devem ser criados na raiz (não em `/tmp`) e removidos após uso.
@@ -61,7 +61,7 @@ Todo script que acessa o Google Ads importa daqui. Nunca instanciar `GoogleAdsAp
 import { ads, getCustomer, enums, micros, fromMicros } from './scripts/lib/ads.ts';
 
 // Client pré-configurado
-await ads.portico.query(`SELECT ...`);
+await ads['your-client'].query(`SELECT ...`);
 
 // Client ad-hoc (outro customer ID)
 const c = getCustomer('123-456-7890');
