@@ -53,7 +53,7 @@
 						href="/{data.tenant}/reports"
 						class="flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium transition-colors {currentPath.includes('/reports') ? 'bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'}"
 					>
-						<FileText class="w-4 h-4" /> Relatórios
+						<FileText class="w-4 h-4" /> Reports
 					</a>
 					<div class="w-px h-6 bg-slate-200 dark:bg-slate-700 mx-2"></div>
 					<a
@@ -105,7 +105,7 @@
 					href="/{data.tenant}/reports"
 					class="flex items-center gap-3 px-3 py-2 rounded-md text-base font-medium {currentPath.includes('/reports') ? 'bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600' : 'text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800'}"
 				>
-					<FileText class="w-5 h-5" /> Relatórios
+					<FileText class="w-5 h-5" /> Reports
 				</a>
 				<a
 					href="/{data.tenant}/settings"

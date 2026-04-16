@@ -20,17 +20,17 @@
 	<div class="mb-8">
 		<div class="flex items-center gap-3 mb-1">
 			<FileText class="w-6 h-6 text-slate-400" />
-			<h2 class="text-2xl font-bold text-slate-900 dark:text-white">Relatórios</h2>
+			<h2 class="text-2xl font-bold text-slate-900 dark:text-white">Reports</h2>
 		</div>
 		<p class="text-sm text-slate-500 dark:text-slate-400 ml-9">
-			{data.reports.length} {data.reports.length === 1 ? 'relatório' : 'relatórios'} disponíveis
+			{data.reports.length} {data.reports.length === 1 ? 'report' : 'reports'} available
 		</p>
 	</div>
 
 	{#if data.reports.length === 0}
 		<div class="rounded-xl border border-dashed border-slate-300 dark:border-slate-700 p-12 text-center">
 			<FileText class="w-10 h-10 text-slate-300 dark:text-slate-600 mx-auto mb-3" />
-			<p class="text-slate-500 dark:text-slate-400 text-sm">Nenhum relatório encontrado para este cliente.</p>
+			<p class="text-slate-500 dark:text-slate-400 text-sm">No reports found for this client.</p>
 		</div>
 	{:else}
 		<div class="grid gap-3 sm:grid-cols-2">

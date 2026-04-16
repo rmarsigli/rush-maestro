@@ -7,12 +7,12 @@ import type { PageServerLoad } from './$types';
 const CLIENTS_DIR = path.resolve('../clients');
 
 const TYPE_MAP: Record<string, { label: string; color: string }> = {
-	audit:    { label: 'Auditoria',       color: 'amber'  },
-	search:   { label: 'Campanha Search', color: 'blue'   },
-	weekly:   { label: 'Semanal',         color: 'emerald'},
-	monthly:  { label: 'Mensal',          color: 'violet' },
-	alert:    { label: 'Alerta',          color: 'red'    },
-	report:   { label: 'Relatório',       color: 'slate'  },
+	audit:    { label: 'Audit',           color: 'amber'  },
+	search:   { label: 'Search Campaign', color: 'blue'   },
+	weekly:   { label: 'Weekly',          color: 'emerald'},
+	monthly:  { label: 'Monthly',         color: 'violet' },
+	alert:    { label: 'Alert',           color: 'red'    },
+	report:   { label: 'Report',          color: 'slate'  },
 };
 
 function detectType(slug: string): string {

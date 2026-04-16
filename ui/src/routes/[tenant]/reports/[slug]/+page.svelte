@@ -13,7 +13,7 @@
 			href="/{data.tenant}/reports"
 			class="inline-flex items-center gap-1.5 text-sm text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors mb-4"
 		>
-			<ArrowLeft class="w-4 h-4" /> Todos os relatórios
+			<ArrowLeft class="w-4 h-4" /> All reports
 		</a>
 
 		<div class="flex items-start gap-3">
