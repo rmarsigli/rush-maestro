@@ -23,7 +23,7 @@ export async function getLiveCampaigns(customerId?: string): Promise<LiveCampaig
     const refreshToken = process.env.GOOGLE_ADS_REFRESH_TOKEN;
     const loginCustomerId = process.env.GOOGLE_ADS_LOGIN_CUSTOMER_ID?.replace(/-/g, '');
 
-    if (!clientId || !clientSecret || !developerToken || !refreshToken || !loginCustomerId) {
+    if (!clientId || !clientSecret || !developerToken || !refreshToken) {
         console.warn('Google Ads credentials are missing in .env');
         return [];
     }
@@ -35,12 +35,11 @@ export async function getLiveCampaigns(customerId?: string): Promise<LiveCampaig
             developer_token: developerToken,
         });
 
-        // Remove hyphens from customer ID
         const cleanCustomerId = customerId.replace(/-/g, '');
 
         const customer = client.Customer({
             customer_id: cleanCustomerId,
-            login_customer_id: loginCustomerId,
+            ...(loginCustomerId ? { login_customer_id: loginCustomerId } : {}),
             refresh_token: refreshToken
         });
 

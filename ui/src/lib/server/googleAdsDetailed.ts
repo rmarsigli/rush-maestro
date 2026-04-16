@@ -16,8 +16,8 @@ export async function getDetailedCampaign(customerId?: string, campaignId?: stri
     const refreshToken = process.env.GOOGLE_ADS_REFRESH_TOKEN;
     const loginCustomerId = process.env.GOOGLE_ADS_LOGIN_CUSTOMER_ID?.replace(/-/g, '');
 
-    if (!clientId || !clientSecret || !developerToken || !refreshToken || !loginCustomerId) {
-        throw new Error(`Missing Google Ads credentials. Details: clientId=${!!clientId}, secret=${!!clientSecret}, token=${!!developerToken}, refresh=${!!refreshToken}, loginId=${!!loginCustomerId}`);
+    if (!clientId || !clientSecret || !developerToken || !refreshToken) {
+        throw new Error(`Missing Google Ads credentials. Details: clientId=${!!clientId}, secret=${!!clientSecret}, token=${!!developerToken}, refresh=${!!refreshToken}`);
     }
 
     try {
@@ -30,7 +30,7 @@ export async function getDetailedCampaign(customerId?: string, campaignId?: stri
         const cleanCustomerId = customerId.replace(/-/g, '');
         const customer = client.Customer({
             customer_id: cleanCustomerId,
-            login_customer_id: loginCustomerId,
+            ...(loginCustomerId ? { login_customer_id: loginCustomerId } : {}),
             refresh_token: refreshToken
         });
 
