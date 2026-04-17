@@ -107,17 +107,6 @@ export async function getClientPosts(clientId: string): Promise<PostWithMeta[]> 
   }
 }
 
-export async function updatePost(
-  clientId: string,
-  filename: string,
-  patch: Partial<Post>
-): Promise<void> {
-  const filePath = path.join(CLIENTS_DIR, clientId, 'posts', filename);
-  const raw = await fs.readFile(filePath, 'utf-8');
-  const parsed = JSON.parse(raw);
-  parsed.result = { ...parsed.result, ...patch };
-  await fs.writeFile(filePath, JSON.stringify(parsed, null, 4), 'utf-8');
-}
 
 export interface GoogleAdGroup {
   name: string;

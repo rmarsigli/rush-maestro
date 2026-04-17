@@ -36,7 +36,7 @@
 		if (!schedulingPost || !schedDate) return;
 		isSaving = true;
 		try {
-			await fetch(`/api/posts/${data.tenant}/${schedulingPost.id}`, {
+			await fetch(`/api/posts/${data.tenant}/${schedulingPost.filename}`, {
 				method: 'PATCH',
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({
@@ -61,7 +61,7 @@
 		approvingId = post.id;
 		const newStatus = post.status === 'approved' ? 'draft' : 'approved';
 		try {
-			await fetch(`/api/posts/${data.tenant}/${post.id}`, {
+			await fetch(`/api/posts/${data.tenant}/${post.filename}`, {
 				method: 'PATCH',
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({ status: newStatus }),

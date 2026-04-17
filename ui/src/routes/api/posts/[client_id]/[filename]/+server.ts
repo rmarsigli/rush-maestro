@@ -40,6 +40,34 @@ export const POST: RequestHandler = async ({ params, request }) => {
 	}
 };
 
+export const PATCH: RequestHandler = async ({ params, request }) => {
+	const body = await request.json();
+	const { client_id, filename } = params;
+
+	if (!isValidSegment(client_id) || !isValidSegment(filename)) {
+		return json({ error: 'Invalid parameters' }, { status: 400 });
+	}
+
+	const filePath = path.join(CLIENTS_DIR, client_id, 'posts', filename);
+
+	try {
+		const raw = await fs.readFile(filePath, 'utf-8');
+		const parsed = JSON.parse(raw);
+
+		if (!parsed.result) return json({ error: 'Invalid post format' }, { status: 400 });
+
+		const allowed = ['status', 'title', 'content', 'hashtags', 'media_type', 'scheduled_date', 'scheduled_time', 'platform'];
+		for (const key of allowed) {
+			if (body[key] !== undefined) parsed.result[key] = body[key];
+		}
+
+		await fs.writeFile(filePath, JSON.stringify(parsed, null, 4), 'utf-8');
+		return json({ success: true });
+	} catch {
+		return json({ error: 'Post not found' }, { status: 404 });
+	}
+};
+
 export const DELETE: RequestHandler = async ({ params }) => {
 	const { client_id, filename } = params;
 
