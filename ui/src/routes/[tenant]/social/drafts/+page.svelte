@@ -164,14 +164,48 @@
 				<div class="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm p-4 flex items-start gap-4">
 
 					<div class="flex-1 min-w-0">
+						<!-- Header row -->
 						<div class="flex items-center gap-2 mb-2 flex-wrap">
 							<span class="text-xs font-bold px-2 py-0.5 rounded-full uppercase tracking-wide {STATUS_BADGE[post.status] ?? STATUS_BADGE.draft}">
 								{post.status}
 							</span>
-							<span class="text-xs text-slate-400 font-mono truncate">{post.id}</span>
+							{#if post.media_type}
+								<span class="text-xs px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 uppercase tracking-wide font-medium">
+									{post.media_type}
+								</span>
+							{/if}
+							{#if (post.workflow as any)?.strategy?.framework}
+								<span class="text-xs px-2 py-0.5 rounded-full bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400 font-medium">
+									{(post.workflow as any).strategy.framework}
+								</span>
+							{/if}
+							<span class="text-xs text-slate-400 font-mono truncate ml-auto">{post.id}</span>
 						</div>
-						<p class="font-semibold text-slate-900 dark:text-white mb-1">{post.title}</p>
-						<p class="text-sm text-slate-500 dark:text-slate-400 line-clamp-2">{post.content}</p>
+
+						<!-- Title -->
+						<p class="font-semibold text-slate-900 dark:text-white mb-2">{post.title}</p>
+
+						<!-- Content -->
+						<p class="text-sm text-slate-600 dark:text-slate-400 whitespace-pre-line leading-relaxed mb-3">{post.content}</p>
+
+						<!-- Hashtags -->
+						{#if post.hashtags?.length}
+							<p class="text-xs text-indigo-500 dark:text-indigo-400 flex flex-wrap gap-1 mb-2">
+								{#each post.hashtags as tag}<span>{tag}</span>{/each}
+							</p>
+						{/if}
+
+						<!-- Workflow reasoning (if present) -->
+						{#if (post.workflow as any)?.strategy?.reasoning}
+							<p class="text-xs text-slate-400 dark:text-slate-500 italic border-l-2 border-slate-200 dark:border-slate-700 pl-2">
+								{(post.workflow as any).strategy.reasoning}
+							</p>
+						{/if}
+
+						<!-- Media files -->
+						{#if post.media_files?.length}
+							<p class="text-xs text-slate-400 mt-2">📎 {post.media_files.length} media file{post.media_files.length > 1 ? 's' : ''}</p>
+						{/if}
 					</div>
 
 					<div class="flex items-center gap-2 shrink-0">
