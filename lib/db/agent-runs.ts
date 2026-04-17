@@ -52,3 +52,12 @@ export function getRecentRuns(agent: string, tenant: string, limit = 7): AgentRu
     LIMIT ?
   `).all(agent, tenant, limit) as AgentRunRow[];
 }
+
+export function getAllRecentRuns(tenant: string, limit = 30): AgentRunRow[] {
+  return getDb().prepare(`
+    SELECT * FROM agent_runs
+    WHERE tenant = ?
+    ORDER BY created_at DESC
+    LIMIT ?
+  `).all(tenant, limit) as AgentRunRow[];
+}
