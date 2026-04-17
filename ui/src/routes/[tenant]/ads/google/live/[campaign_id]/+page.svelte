@@ -97,7 +97,7 @@
 					datasets: [
 						{
 							type: 'bar',
-							label: 'Custo (R$)',
+							label: 'Cost (R$)',
 							data: costs,
 							backgroundColor: 'rgba(99,102,241,0.6)',
 							borderColor: '#6366f1',
@@ -125,7 +125,7 @@
 						tooltip: {
 							callbacks: {
 								label: ctx => {
-									if (ctx.dataset.label === 'Custo (R$)') return `Custo: R$${Number(ctx.raw).toFixed(2)}`;
+									if (ctx.dataset.label === 'Cost (R$)') return `Cost: R$${Number(ctx.raw).toFixed(2)}`;
 									if (ctx.dataset.label === 'CPA (R$)' && ctx.raw != null) return `CPA: R$${Number(ctx.raw).toFixed(2)}`;
 									return '';
 								},
@@ -135,7 +135,7 @@
 					scales: {
 						yCost: {
 							type: 'linear', position: 'left',
-							title: { display: true, text: 'Custo (R$)' },
+							title: { display: true, text: 'Cost (R$)' },
 							beginAtZero: true,
 						},
 						yCpa: {
@@ -294,10 +294,10 @@
 				<div class="flex items-center gap-1 mt-2 relative z-10">
 					{#if deltas.impressions.dir === 'up'}
 						<TrendingUp class="w-3 h-3 text-emerald-500" />
-						<span class="text-xs font-bold text-emerald-600 dark:text-emerald-400">{deltas.impressions.pct} vs sem. ant.</span>
+						<span class="text-xs font-bold text-emerald-600 dark:text-emerald-400">{deltas.impressions.pct} vs prev. wk.</span>
 					{:else}
 						<TrendingDown class="w-3 h-3 text-red-400" />
-						<span class="text-xs font-bold text-red-500 dark:text-red-400">{deltas.impressions.pct} vs sem. ant.</span>
+						<span class="text-xs font-bold text-red-500 dark:text-red-400">{deltas.impressions.pct} vs prev. wk.</span>
 					{/if}
 				</div>
 			{/if}
@@ -320,10 +320,10 @@
 				<div class="flex items-center gap-1 mt-2 relative z-10">
 					{#if deltas.clicks.dir === 'up'}
 						<TrendingUp class="w-3 h-3 text-emerald-500" />
-						<span class="text-xs font-bold text-emerald-600 dark:text-emerald-400">{deltas.clicks.pct} vs sem. ant.</span>
+						<span class="text-xs font-bold text-emerald-600 dark:text-emerald-400">{deltas.clicks.pct} vs prev. wk.</span>
 					{:else}
 						<TrendingDown class="w-3 h-3 text-red-400" />
-						<span class="text-xs font-bold text-red-500 dark:text-red-400">{deltas.clicks.pct} vs sem. ant.</span>
+						<span class="text-xs font-bold text-red-500 dark:text-red-400">{deltas.clicks.pct} vs prev. wk.</span>
 					{/if}
 				</div>
 			{/if}
@@ -345,10 +345,10 @@
 				<div class="flex items-center gap-1 mt-2 relative z-10">
 					{#if deltas.cost.dir === 'up'}
 						<TrendingUp class="w-3 h-3 text-emerald-500" />
-						<span class="text-xs font-bold text-emerald-600 dark:text-emerald-400">{deltas.cost.pct} vs sem. ant.</span>
+						<span class="text-xs font-bold text-emerald-600 dark:text-emerald-400">{deltas.cost.pct} vs prev. wk.</span>
 					{:else}
 						<TrendingDown class="w-3 h-3 text-red-400" />
-						<span class="text-xs font-bold text-red-500 dark:text-red-400">{deltas.cost.pct} vs sem. ant.</span>
+						<span class="text-xs font-bold text-red-500 dark:text-red-400">{deltas.cost.pct} vs prev. wk.</span>
 					{/if}
 				</div>
 			{/if}
@@ -371,10 +371,10 @@
 				<div class="flex items-center gap-1 mt-2 relative z-10">
 					{#if deltas.conversions.dir === 'up'}
 						<TrendingUp class="w-3 h-3 text-emerald-500" />
-						<span class="text-xs font-bold text-emerald-600 dark:text-emerald-400">{deltas.conversions.pct} vs sem. ant.</span>
+						<span class="text-xs font-bold text-emerald-600 dark:text-emerald-400">{deltas.conversions.pct} vs prev. wk.</span>
 					{:else}
 						<TrendingDown class="w-3 h-3 text-red-400" />
-						<span class="text-xs font-bold text-red-500 dark:text-red-400">{deltas.conversions.pct} vs sem. ant.</span>
+						<span class="text-xs font-bold text-red-500 dark:text-red-400">{deltas.conversions.pct} vs prev. wk.</span>
 					{/if}
 				</div>
 			{/if}
@@ -397,7 +397,7 @@
 					</div>
 					<div class="flex items-end justify-between mb-2">
 						<span class="text-2xl font-bold text-slate-900 dark:text-white">{brl(p.cost)}</span>
-						<span class="text-sm text-slate-500">de {brl(p.budget)}/dia</span>
+						<span class="text-sm text-slate-500">of {brl(p.budget)}/day</span>
 					</div>
 					<div class="w-full bg-slate-100 dark:bg-slate-800 rounded-full h-2 overflow-hidden">
 						<div
@@ -405,7 +405,7 @@
 							style="width: {Math.min(p.pct * 100, 100).toFixed(0)}%"
 						></div>
 					</div>
-					<p class="text-xs text-slate-400 mt-1.5 text-right">{(p.pct * 100).toFixed(0)}% utilizado</p>
+					<p class="text-xs text-slate-400 mt-1.5 text-right">{(p.pct * 100).toFixed(0)}% used</p>
 				</div>
 			{/if}
 
@@ -417,23 +417,23 @@
 						<div class="w-8 h-8 rounded-md bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-500">
 							<CalendarDays class="w-4 h-4" />
 						</div>
-						Mês atual — acumulado
+						Current Month — MTD
 					</div>
 					<div class="grid grid-cols-2 gap-3">
 						<div>
-							<p class="text-xs text-slate-400 uppercase tracking-wide font-semibold">Gasto</p>
+							<p class="text-xs text-slate-400 uppercase tracking-wide font-semibold">Spend</p>
 							<p class="text-xl font-bold text-slate-900 dark:text-white">{brl(m.totalCost)}</p>
 						</div>
 						<div>
-							<p class="text-xs text-slate-400 uppercase tracking-wide font-semibold">Conversões</p>
+							<p class="text-xs text-slate-400 uppercase tracking-wide font-semibold">Conversions</p>
 							<p class="text-xl font-bold text-slate-900 dark:text-white">{m.totalConversions}</p>
 						</div>
 						<div>
-							<p class="text-xs text-slate-400 uppercase tracking-wide font-semibold">Dias ativos</p>
+							<p class="text-xs text-slate-400 uppercase tracking-wide font-semibold">Active Days</p>
 							<p class="text-xl font-bold text-slate-900 dark:text-white">{m.daysActive}</p>
 						</div>
 						<div>
-							<p class="text-xs text-slate-400 uppercase tracking-wide font-semibold">CPA médio</p>
+							<p class="text-xs text-slate-400 uppercase tracking-wide font-semibold">Avg CPA</p>
 							<p class="text-xl font-bold text-slate-900 dark:text-white">{m.avgCpa > 0 ? brl(m.avgCpa) : '—'}</p>
 						</div>
 					</div>
@@ -448,7 +448,7 @@
 		<div class="bg-white dark:bg-slate-900 rounded-xl p-6 border border-slate-200 dark:border-slate-800 shadow-sm">
 			<h3 class="flex items-center gap-2 text-lg text-slate-900 dark:text-white font-bold mb-6">
 				<Activity class="w-5 h-5 text-indigo-500" /> Performance Timeline
-				<span class="ml-auto text-xs font-normal text-slate-400">fonte: Google Ads API</span>
+				<span class="ml-auto text-xs font-normal text-slate-400">source: Google Ads API</span>
 			</h3>
 			<div class="w-full h-[280px]">
 				<canvas bind:this={chartCanvas}></canvas>
@@ -460,10 +460,10 @@
 	{#if data.dbHistory.length > 0}
 		<div class="bg-white dark:bg-slate-900 rounded-xl p-6 border border-slate-200 dark:border-slate-800 shadow-sm">
 			<h3 class="flex items-center gap-2 text-lg text-slate-900 dark:text-white font-bold mb-1">
-				<BarChart2 class="w-5 h-5 text-indigo-500" /> Custo Diário + CPA — 30 dias
-				<span class="ml-auto text-xs font-normal text-slate-400">fonte: monitoramento local</span>
+				<BarChart2 class="w-5 h-5 text-indigo-500" /> Daily Cost + CPA — 30 days
+				<span class="ml-auto text-xs font-normal text-slate-400">source: local monitoring</span>
 			</h3>
-			<p class="text-xs text-slate-400 mb-5 ml-7">CPA plotado apenas nos dias com conversões</p>
+			<p class="text-xs text-slate-400 mb-5 ml-7">CPA plotted only on days with conversions</p>
 			<div class="w-full h-[280px]">
 				<canvas bind:this={historyCanvas}></canvas>
 			</div>
