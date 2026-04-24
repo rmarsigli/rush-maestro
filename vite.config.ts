@@ -13,7 +13,7 @@ export default defineConfig({
 		}
 	},
 	ssr: {
-		external: ['better-sqlite3', 'bun:sqlite'],
+		external: ['bun:sqlite'],
 	},
 	test: {
 		expect: { requireAssertions: true },
