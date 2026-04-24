@@ -1,16 +1,13 @@
-import { getClients, getClientPosts } from '$lib/server/db';
-import { error } from '@sveltejs/kit';
+import { listPosts } from '$lib/server/posts';
 import type { PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async ({ params }) => {
-	const clients = await getClients();
-	const client = clients.find(c => c.id === params.tenant);
-	if (!client) error(404, 'Client not found');
+	const scheduled = listPosts(params.tenant, 'scheduled').map((p) => ({
+		...p,
+		client_id: p.tenant_id,
+		filename: p.id + '.json',
+		media_files: p.media_path ? [p.media_path] : [],
+	}));
 
-	const all = await getClientPosts(params.tenant);
-
-	// Calendar: posts that have a scheduled_date (scheduled or published)
-	const scheduled = all.filter(p => p.scheduled_date);
-
-	return { tenant: params.tenant, client, scheduled };
+	return { tenant: params.tenant, scheduled };
 };

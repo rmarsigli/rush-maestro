@@ -15,8 +15,8 @@ Objetivo: mover SvelteKit para a raiz, substituir flat-files por SQLite, expor M
 | T02 | ✅ completed | Drop dual-runtime shim, usar `bun:sqlite` direto |
 | T03 | ✅ completed | Migrations SQLite: tenants, posts, reports, campaigns |
 | T04 | ✅ completed | Seed script: flat-files → SQLite |
-| T05 | ⬜ pending | Funções TS da camada de dados (`src/lib/server/`) |
-| T06 | ⬜ pending | Storage adapter interface + implementação local |
+| T05 | ✅ completed | Funções TS da camada de dados (`src/lib/server/`) |
+| T06 | ✅ completed | Storage adapter interface + implementação local |
 | T07 | ⬜ pending | Migrar rotas UI de `fs.readFile` para funções SQLite |
 | T08 | ⬜ pending | MCP server setup em `/mcp` via SvelteKit |
 | T09 | ⬜ pending | MCP tools e resources |

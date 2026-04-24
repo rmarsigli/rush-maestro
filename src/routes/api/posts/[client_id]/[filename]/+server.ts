@@ -1,71 +1,61 @@
-import fs from 'node:fs/promises';
 import path from 'node:path';
 import { json } from '@sveltejs/kit';
+import { getPost, updatePost, deletePost } from '$lib/server/posts';
+import { storage } from '$lib/server/storage';
 import type { RequestHandler } from './$types';
-
-const CLIENTS_DIR = path.resolve('../clients');
+import type { PostStatus, MediaType } from '$lib/server/posts';
 
 function isValidSegment(s: string): boolean {
 	return s === path.basename(s) && /^[a-z0-9][a-z0-9-_.]*$/i.test(s);
 }
 
+function postId(filename: string): string {
+	return filename.replace(/\.json$/, '');
+}
+
 export const POST: RequestHandler = async ({ params, request }) => {
-	const body = await request.json();
+	const body = await request.json() as Record<string, unknown>;
 	const { client_id, filename } = params;
 
 	if (!isValidSegment(client_id) || !isValidSegment(filename)) {
 		return json({ error: 'Invalid parameters' }, { status: 400 });
 	}
 
-	const filePath = path.join(CLIENTS_DIR, client_id, 'posts', filename);
+	const id = postId(filename);
+	const post = getPost(id);
+	if (!post) return json({ success: false, error: 'Post not found' }, { status: 404 });
 
-	try {
-		const data = await fs.readFile(filePath, 'utf-8');
-		const parsed = JSON.parse(data);
+	const patch: Parameters<typeof updatePost>[1] = {};
+	if (body.title !== undefined) patch.title = body.title as string;
+	if (body.content !== undefined) patch.content = body.content as string;
+	if (body.hashtags !== undefined) patch.hashtags = body.hashtags as string[];
+	if (body.status !== undefined) patch.status = body.status as PostStatus;
+	if (body.media_type !== undefined) patch.media_type = body.media_type as MediaType;
 
-		if (parsed.result) {
-			if (body.title !== undefined) parsed.result.title = body.title;
-			if (body.content !== undefined) parsed.result.content = body.content;
-			if (body.hashtags !== undefined) parsed.result.hashtags = body.hashtags;
-			if (body.status !== undefined) parsed.result.status = body.status;
-			if (body.media_type !== undefined) parsed.result.media_type = body.media_type;
-
-			await fs.writeFile(filePath, JSON.stringify(parsed, null, 4), 'utf-8');
-			return json({ success: true });
-		}
-		
-		return json({ success: false, error: 'Invalid post format' }, { status: 400 });
-	} catch (e) {
-		return json({ success: false, error: 'Post not found' }, { status: 404 });
-	}
+	updatePost(id, patch);
+	return json({ success: true });
 };
 
 export const PATCH: RequestHandler = async ({ params, request }) => {
-	const body = await request.json();
+	const body = await request.json() as Record<string, unknown>;
 	const { client_id, filename } = params;
 
 	if (!isValidSegment(client_id) || !isValidSegment(filename)) {
 		return json({ error: 'Invalid parameters' }, { status: 400 });
 	}
 
-	const filePath = path.join(CLIENTS_DIR, client_id, 'posts', filename);
+	const id = postId(filename);
+	const post = getPost(id);
+	if (!post) return json({ error: 'Post not found' }, { status: 404 });
 
-	try {
-		const raw = await fs.readFile(filePath, 'utf-8');
-		const parsed = JSON.parse(raw);
-
-		if (!parsed.result) return json({ error: 'Invalid post format' }, { status: 400 });
-
-		const allowed = ['status', 'title', 'content', 'hashtags', 'media_type', 'scheduled_date', 'scheduled_time', 'platform'];
-		for (const key of allowed) {
-			if (body[key] !== undefined) parsed.result[key] = body[key];
-		}
-
-		await fs.writeFile(filePath, JSON.stringify(parsed, null, 4), 'utf-8');
-		return json({ success: true });
-	} catch {
-		return json({ error: 'Post not found' }, { status: 404 });
+	const patch: Parameters<typeof updatePost>[1] = {};
+	const allowed: (keyof typeof patch)[] = ['status', 'title', 'content', 'hashtags', 'media_type'];
+	for (const key of allowed) {
+		if (body[key] !== undefined) (patch as Record<string, unknown>)[key] = body[key];
 	}
+
+	updatePost(id, patch);
+	return json({ success: true });
 };
 
 export const DELETE: RequestHandler = async ({ params }) => {
@@ -75,27 +65,14 @@ export const DELETE: RequestHandler = async ({ params }) => {
 		return json({ error: 'Invalid parameters' }, { status: 400 });
 	}
 
-	const prefix = filename.replace('.json', '');
-	const postsDir = path.join(CLIENTS_DIR, client_id, 'posts');
-	const filePath = path.join(postsDir, filename);
+	const id = postId(filename);
+	const post = getPost(id);
+	if (!post) return json({ success: false, error: 'Post not found' }, { status: 404 });
 
-	try {
-		await fs.unlink(filePath);
-		
-		// Try to delete associated media files
-		try {
-			const entries = await fs.readdir(postsDir);
-			for (const entry of entries) {
-				if (entry !== filename && (entry.startsWith(prefix + '.') || entry.startsWith(prefix + '-'))) {
-					await fs.unlink(path.join(postsDir, entry)).catch(() => {});
-				}
-			}
-		} catch (e) {
-			// ignore media read errors
-		}
-
-		return json({ success: true });
-	} catch (e) {
-		return json({ success: false, error: 'Failed to delete post' }, { status: 500 });
+	if (post.media_path && storage.exists(client_id, post.media_path)) {
+		await storage.delete(client_id, post.media_path).catch(() => {});
 	}
+
+	deletePost(id);
+	return json({ success: true });
 };

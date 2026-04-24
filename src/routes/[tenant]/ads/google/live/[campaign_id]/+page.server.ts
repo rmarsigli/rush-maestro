@@ -1,5 +1,5 @@
 import { getDetailedCampaign } from '$lib/server/googleAdsDetailed';
-import { getClients } from '$lib/server/db';
+import { getTenant } from '$lib/server/tenants';
 import { getLastNDays, getMonthlySummary } from '$db/monitoring';
 import { getOpenAlerts } from '$db/alerts';
 import { error } from '@sveltejs/kit';
@@ -37,8 +37,7 @@ function sumField(
 }
 
 export const load: PageServerLoad = async ({ params, url }) => {
-	const clients = await getClients();
-	const client = clients.find(c => c.id === params.tenant);
+	const client = getTenant(params.tenant);
 
 	if (!client) error(404, 'Client not found');
 
@@ -46,7 +45,7 @@ export const load: PageServerLoad = async ({ params, url }) => {
 	const endDate   = url.searchParams.get('endDate')   || undefined;
 
 	const campaign = await getDetailedCampaign(
-		client.brand.google_ads_id, params.campaign_id, params.tenant, startDate, endDate
+		client.google_ads_id ?? undefined, params.campaign_id, params.tenant, startDate, endDate
 	);
 
 	if (!campaign) error(404, 'Live campaign not found in Google Ads');

@@ -1,6 +1,6 @@
 import { getDetailedCampaign } from '$lib/server/googleAdsDetailed';
 import type { CampaignAdGroup } from '$lib/server/googleAdsDetailed';
-import { getClients } from '$lib/server/db';
+import { getTenant } from '$lib/server/tenants';
 import { error } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 
@@ -13,8 +13,7 @@ export const POST: RequestHandler = async ({ params, url }) => {
         error(400, 'Invalid parameters');
     }
 
-    const clients = await getClients();
-    const client = clients.find(c => c.id === params.client_id);
+    const client = getTenant(params.client_id);
 
     if (!client) {
         error(404, 'Client not found');
@@ -23,7 +22,7 @@ export const POST: RequestHandler = async ({ params, url }) => {
     const startDate = url.searchParams.get('startDate') || undefined;
     const endDate = url.searchParams.get('endDate') || undefined;
 
-    const campaign = await getDetailedCampaign(client.brand.google_ads_id, params.campaign_id, params.client_id, startDate, endDate);
+    const campaign = await getDetailedCampaign(client.google_ads_id ?? undefined, params.campaign_id, params.client_id, startDate, endDate);
 
     if (!campaign) {
         error(404, 'Live campaign not found in Google Ads');

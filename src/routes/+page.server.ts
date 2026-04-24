@@ -1,18 +1,18 @@
 import { redirect } from '@sveltejs/kit';
-import { getClients } from '$lib/server/db';
+import { listTenants } from '$lib/server/tenants';
 import type { PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async ({ cookies }) => {
-	const clients = await getClients();
+	const tenants = listTenants();
 
-	if (clients.length === 0) {
+	if (tenants.length === 0) {
 		return {};
 	}
 
 	const lastTenant = cookies.get('last_tenant');
-	if (lastTenant && clients.find((c) => c.id === lastTenant)) {
+	if (lastTenant && tenants.find((t) => t.id === lastTenant)) {
 		redirect(302, `/${lastTenant}/social`);
 	}
 
-	redirect(302, `/${clients[0].id}/social`);
+	redirect(302, `/${tenants[0].id}/social`);
 };

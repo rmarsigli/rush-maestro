@@ -1,4 +1,4 @@
-import { getClients } from '$lib/server/db';
+import { listTenants } from '$lib/server/tenants';
 import {
 	listIntegrations,
 	createIntegration,
@@ -30,8 +30,7 @@ function parseClientIds(raw: FormDataEntryValue | null): string[] {
 
 export const load: PageServerLoad = async () => {
 	const integrations = listIntegrations();
-	const clients = await getClients();
-	const clientOptions = clients.map((c) => ({ value: c.id, label: c.brand.name }));
+	const clientOptions = listTenants().map((t) => ({ value: t.id, label: t.name }));
 
 	return { integrations, clientOptions };
 };
