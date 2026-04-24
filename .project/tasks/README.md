@@ -7,14 +7,14 @@ Objetivo: mover SvelteKit para a raiz, substituir flat-files por SQLite, expor M
 
 ## Estado atual
 
-**Última task concluída:** T03 — commit `c7af794`
+**Última task concluída:** T04 — seed flat-files → SQLite
 
 | Task | Status | Descrição |
 |---|---|---|
 | T01 | ✅ completed | Move SvelteKit de `ui/` para root |
 | T02 | ✅ completed | Drop dual-runtime shim, usar `bun:sqlite` direto |
 | T03 | ✅ completed | Migrations SQLite: tenants, posts, reports, campaigns |
-| T04 | ⬜ next | Seed script: flat-files → SQLite |
+| T04 | ✅ completed | Seed script: flat-files → SQLite |
 | T05 | ⬜ pending | Funções TS da camada de dados (`src/lib/server/`) |
 | T06 | ⬜ pending | Storage adapter interface + implementação local |
 | T07 | ⬜ pending | Migrar rotas UI de `fs.readFile` para funções SQLite |
@@ -37,19 +37,18 @@ Objetivo: mover SvelteKit para a raiz, substituir flat-files por SQLite, expor M
 
 ---
 
-## Próximo passo: T04
+## Próximo passo: T05
 
-T04 escreve o script de seed que lê todos os flat-files de `clients/` e popula o SQLite. Deve rodar uma vez e ser idempotente (`INSERT OR REPLACE`). Não remove flat-files — isso é T10.
+T05 cria as funções TypeScript da camada de dados em `src/lib/server/`. Estas funções substituem todas as chamadas diretas a `fs.readFile`/`fs.readdir` e a lógica flat-file espalhada pelos `+page.server.ts`. Nenhuma rota ou MCP tool deve consultar o SQLite diretamente.
 
 **O que fazer:**
-1. Criar `scripts/migrate-flat-to-sqlite.ts`
-2. Ler `clients/[tenant]/brand.json` → INSERT em `tenants`
-3. Ler `clients/[tenant]/posts/*.json` → INSERT em `posts`
-4. Ler `clients/[tenant]/reports/*.md` → INSERT em `reports`
-5. Ler `clients/[tenant]/ads/google/*.json` → INSERT em `campaigns`
-6. Verificar contagens: `bun --eval "import { getDb } from './src/lib/server/db/index.ts'; ..."`
+1. Criar `src/lib/server/tenants.ts` — `listTenants`, `getTenant`, `createTenant`, `updateTenant`, `deleteTenant`
+2. Criar `src/lib/server/posts.ts` — `listPosts`, `getPost`, `createPost`, `updatePost`, `updatePostStatus`, `deletePost`
+3. Criar `src/lib/server/reports.ts` — `listReports`, `getReport`, `createReport`, `deleteReport`, `detectReportType`
+4. Criar `src/lib/server/campaigns.ts` — `listCampaigns`, `getCampaign`, `upsertCampaign`, `markDeployed`, `deleteCampaign`
+5. Verificar com script inline ou `bun --eval`
 
-Ver mapeamento de campos em `T04-seed-flat-files-to-sqlite.md`.
+Ver tipos e assinaturas completos em `T05-data-layer-functions.md`.
 
 ---
 
