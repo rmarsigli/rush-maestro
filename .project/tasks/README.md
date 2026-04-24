@@ -7,7 +7,7 @@ Objetivo: mover SvelteKit para a raiz, substituir flat-files por SQLite, expor M
 
 ## Estado atual
 
-**Última task concluída:** T07 — migrar rotas UI para SQLite
+**Última task concluída:** T08 — MCP server setup em `/mcp`
 
 | Task | Status | Descrição |
 |---|---|---|
@@ -18,7 +18,7 @@ Objetivo: mover SvelteKit para a raiz, substituir flat-files por SQLite, expor M
 | T05 | ✅ completed | Funções TS da camada de dados (`src/lib/server/`) |
 | T06 | ✅ completed | Storage adapter interface + implementação local |
 | T07 | ✅ completed | Migrar rotas UI de `fs.readFile` para funções SQLite |
-| T08 | ⬜ pending | MCP server setup em `/mcp` via SvelteKit |
+| T08 | ✅ completed | MCP server setup em `/mcp` via SvelteKit |
 | T09 | ⬜ pending | MCP tools e resources |
 | T10 | ⬜ pending | Cleanup: remover flat-files, atualizar scripts e CLAUDE.md |
 
@@ -37,17 +37,18 @@ Objetivo: mover SvelteKit para a raiz, substituir flat-files por SQLite, expor M
 
 ---
 
-## Próximo passo: T08
+## Próximo passo: T09
 
-T08 instala `@modelcontextprotocol/sdk`, cria o servidor MCP e expõe em `POST /mcp` + `GET /mcp` via SvelteKit (Streamable HTTP transport). Sem tools ainda — apenas o handshake MCP funcionando.
+T09 registra todas as MCP tools e resources no servidor. Tools chamam as funções da camada de dados (T05); resources expõem dados read-only para browsing de agentes.
 
 **O que fazer:**
-1. `bun add @modelcontextprotocol/sdk`
-2. Criar `src/lib/server/mcp/server.ts` com `McpServer`
-3. Criar `src/routes/mcp/+server.ts` (POST + GET handlers)
-4. Testar com `curl` ou MCP Inspector
+1. Criar `src/lib/server/mcp/tools/content.ts` — tools de tenants, posts, reports, campaigns
+2. Importar e registrar no `createServer()` em `server.ts`
+3. Verificar com MCP Inspector ou `/mcp` no Claude Code
 
-Ver detalhes em `T08-mcp-server-setup.md`.
+Ver detalhes em `T09-mcp-tools-and-resources.md`.
+
+**Atenção:** O servidor MCP usa `createServer()` (factory stateless) — cada request cria uma nova instância. Tools e resources devem ser registradas dentro da factory, não no módulo.
 
 ---
 

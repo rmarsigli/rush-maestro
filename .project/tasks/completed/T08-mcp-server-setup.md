@@ -1,7 +1,7 @@
 # T08 — MCP server setup at `/mcp`
 
 **Phase:** 4 — MCP  
-**Status:** pending  
+**Status:** completed  
 **ADR:** ADR-001  
 **Depends on:** T01, T02  
 **Blocks:** T09
