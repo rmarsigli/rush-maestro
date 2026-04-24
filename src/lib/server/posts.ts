@@ -20,6 +20,8 @@ export interface Post {
 	media_type: MediaType | null;
 	workflow: PostWorkflow | null;
 	media_path: string | null;
+	scheduled_date: string | null;
+	scheduled_time: string | null;
 	published_at: string | null;
 	created_at: string;
 	updated_at: string;
@@ -35,6 +37,8 @@ interface PostRow {
 	media_type: string | null;
 	workflow: string | null;
 	media_path: string | null;
+	scheduled_date: string | null;
+	scheduled_time: string | null;
 	published_at: string | null;
 	created_at: string;
 	updated_at: string;
@@ -72,8 +76,8 @@ export function getPost(id: string): Post | null {
 export function createPost(data: Omit<Post, 'created_at' | 'updated_at'>): void {
 	getDb()
 		.prepare(
-			`INSERT INTO posts (id, tenant_id, status, title, content, hashtags, media_type, workflow, media_path, published_at)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+			`INSERT INTO posts (id, tenant_id, status, title, content, hashtags, media_type, workflow, media_path, scheduled_date, scheduled_time, published_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
 		)
 		.run(
 			data.id,
@@ -85,6 +89,8 @@ export function createPost(data: Omit<Post, 'created_at' | 'updated_at'>): void 
 			data.media_type ?? null,
 			data.workflow ? JSON.stringify(data.workflow) : null,
 			data.media_path ?? null,
+			data.scheduled_date ?? null,
+			data.scheduled_time ?? null,
 			data.published_at ?? null
 		);
 }
@@ -103,6 +109,8 @@ export function updatePost(
 	if (data.media_type !== undefined) { fields.push('media_type = ?'); values.push(data.media_type); }
 	if (data.workflow !== undefined) { fields.push('workflow = ?'); values.push(data.workflow ? JSON.stringify(data.workflow) : null); }
 	if (data.media_path !== undefined) { fields.push('media_path = ?'); values.push(data.media_path); }
+	if (data.scheduled_date !== undefined) { fields.push('scheduled_date = ?'); values.push(data.scheduled_date); }
+	if (data.scheduled_time !== undefined) { fields.push('scheduled_time = ?'); values.push(data.scheduled_time); }
 	if (data.published_at !== undefined) { fields.push('published_at = ?'); values.push(data.published_at); }
 
 	if (fields.length === 0) return;

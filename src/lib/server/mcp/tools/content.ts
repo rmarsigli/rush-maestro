@@ -117,6 +117,8 @@ export function registerContentTools(server: McpServer): void {
 			media_type: (data.media_type as MediaType) ?? null,
 			workflow: null,
 			media_path: null,
+			scheduled_date: null,
+			scheduled_time: null,
 			published_at: null
 		})
 		return ok({ created: id })

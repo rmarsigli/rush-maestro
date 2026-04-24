@@ -37,6 +37,8 @@ export const POST: RequestHandler = async ({ params, request }) => {
 			media_type: (result.media_type as MediaType) ?? null,
 			workflow: (body.workflow as Record<string, unknown>) ?? null,
 			media_path: null,
+			scheduled_date: null,
+			scheduled_time: null,
 			published_at: null,
 		});
 
