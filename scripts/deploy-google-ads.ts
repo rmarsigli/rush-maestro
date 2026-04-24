@@ -1,6 +1,8 @@
 import { enums, toMicros, getCustomer } from './lib/ads.ts';
 import fs from 'node:fs/promises';
 import path from 'node:path';
+import { getTenant } from '../src/lib/server/tenants.ts';
+import { getCampaign, markDeployed } from '../src/lib/server/campaigns.ts';
 
 interface AdGroup {
     name: string;
@@ -43,12 +45,13 @@ function parseKeyword(raw: string): { text: string; matchType: number } {
 async function main() {
     const args = process.argv.slice(2);
     if (!args[0]) {
-        console.error('Usage: bun scripts/deploy-google-ads.ts <path-to-campaign.json> [customer_id]');
+        console.error('Usage: bun scripts/deploy-google-ads.ts <path-to-campaign.json> <tenant_id> [customer_id]');
         process.exit(1);
     }
 
     const campaignPath = path.resolve(args[0]);
-    const overrideCustomerId = args[1];
+    const tenantId = args[1];
+    const overrideCustomerId = args[2];
 
     const raw = JSON.parse(await fs.readFile(campaignPath, 'utf-8'));
     if (!raw.result || raw.result.platform !== 'google_search') {
@@ -61,31 +64,29 @@ async function main() {
         process.exit(1);
     }
 
-    // Resolve customer ID and final URL from brand.json
-    const pathParts = campaignPath.split(path.sep);
-    const clientsIdx = pathParts.findIndex(p => p === 'clients');
-    const clientId = clientsIdx !== -1 ? pathParts[clientsIdx + 1] : null;
-
+    // Resolve customer ID from SQLite tenant data
     let customerId = overrideCustomerId;
     let finalUrl: string | undefined;
 
-    if (clientId) {
-        try {
-            const brand = JSON.parse(await fs.readFile(path.resolve(`clients/${clientId}/brand.json`), 'utf-8'));
-            if (!customerId && brand.google_ads_id) customerId = brand.google_ads_id;
-            finalUrl = brand.website_url;
-        } catch { /* brand.json not found */ }
+    if (tenantId) {
+        const tenant = getTenant(tenantId);
+        if (tenant) {
+            if (!customerId && tenant.google_ads_id) customerId = tenant.google_ads_id;
+        }
     }
 
+    finalUrl = process.env.FINAL_URL;
+
     if (!customerId) {
-        console.error('Customer ID not found. Add google_ads_id to brand.json or pass it as the second argument.');
+        console.error('Customer ID not found. Pass tenant_id as the second argument or customer_id as the third.');
         process.exit(1);
     }
     if (!finalUrl) {
-        console.error('website_url not found in brand.json. Add it before deploying (e.g., "https://yoursite.com.br").');
+        console.error('FINAL_URL env var not set. Add it before deploying (e.g., FINAL_URL=https://yoursite.com.br).');
         process.exit(1);
     }
 
+    const cleanCustomerId = customerId.replace(/-/g, '');
     const customer = getCustomer(customerId);
 
     console.log(`\nDeploying "${campaign.id}" to customer ${cleanCustomerId}...`);
@@ -166,12 +167,17 @@ async function main() {
         console.log(`[4/4] RSA created for "${group.name}"`);
     }
 
-    // Mark local JSON as published
-    raw.result.status = 'published';
-    await fs.writeFile(campaignPath, JSON.stringify(raw, null, 4), 'utf-8');
+    // Mark deployed in SQLite
+    if (tenantId) {
+        const slug = path.basename(campaignPath, '.json');
+        const localCampaign = getCampaign(tenantId, slug);
+        if (localCampaign) {
+            markDeployed(localCampaign.id);
+            console.log(`SQLite: campaign "${slug}" marked as deployed.`);
+        }
+    }
 
-    console.log(`\nDone. Campaign deployed and local status updated to "published".`);
-    console.log(`All assets created as PAUSED. Enable them in Google Ads after review.`);
+    console.log(`\nDone. All assets created as PAUSED. Enable them in Google Ads after review.`);
     console.log(`Campaign: ${campaignResourceName}`);
 }
 

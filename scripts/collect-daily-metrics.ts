@@ -5,15 +5,13 @@
  *   bun run scripts/collect-daily-metrics.ts <tenant> [YYYY-MM-DD]
  *
  * If date is omitted, defaults to yesterday.
- * Reads thresholds from clients/<tenant>/brand.json → ads_monitoring.
  */
 
-import path from 'node:path';
-import fs from 'node:fs/promises';
 import { getCustomer, fromMicros } from './lib/ads.ts';
 import { upsertDailyMetrics, type AdGroupMetrics, type AlertRecord } from '../src/lib/server/db/monitoring.ts';
 import { insertAlert } from '../src/lib/server/db/alerts.ts';
 import { logAgentRun } from '../src/lib/server/db/agent-runs.ts';
+import { getTenant, type AdsMonitoringConfig } from '../src/lib/server/tenants.ts';
 
 // ── Args ───────────────────────────────────────────────────────────────────
 
@@ -31,21 +29,7 @@ const date = dateArg ?? (() => {
 
 // ── Brand config ───────────────────────────────────────────────────────────
 
-interface AdsMonitoring {
-  target_cpa_brl: number;
-  no_conversion_alert_days: number;
-  max_cpa_multiplier: number;
-  min_daily_impressions: number;
-  budget_underpace_threshold: number;
-}
-
-interface Brand {
-  name: string;
-  google_ads_id?: string;
-  ads_monitoring?: Partial<AdsMonitoring>;
-}
-
-const DEFAULTS: AdsMonitoring = {
+const DEFAULTS: AdsMonitoringConfig = {
   target_cpa_brl: 100,
   no_conversion_alert_days: 3,
   max_cpa_multiplier: 1.5,
@@ -53,23 +37,19 @@ const DEFAULTS: AdsMonitoring = {
   budget_underpace_threshold: 0.5,
 };
 
-const CLIENTS_DIR = path.resolve(import.meta.dir, '../clients');
-
-let brand: Brand;
-try {
-  brand = JSON.parse(await fs.readFile(path.join(CLIENTS_DIR, tenant, 'brand.json'), 'utf-8'));
-} catch {
-  console.error(`[error] Cannot read brand.json for tenant "${tenant}"`);
+const tenantData = getTenant(tenant);
+if (!tenantData) {
+  console.error(`[error] Tenant "${tenant}" not found in database`);
   process.exit(1);
 }
 
-if (!brand.google_ads_id) {
-  console.error(`[error] No google_ads_id in brand.json for tenant "${tenant}"`);
+if (!tenantData.google_ads_id) {
+  console.error(`[error] No google_ads_id for tenant "${tenant}"`);
   process.exit(1);
 }
 
-const cfg: AdsMonitoring = { ...DEFAULTS, ...(brand.ads_monitoring ?? {}) };
-const customer = getCustomer(brand.google_ads_id);
+const cfg: AdsMonitoringConfig = { ...DEFAULTS, ...(tenantData.ads_monitoring ?? {}) };
+const customer = getCustomer(tenantData.google_ads_id);
 
 // ── Queries ────────────────────────────────────────────────────────────────
 

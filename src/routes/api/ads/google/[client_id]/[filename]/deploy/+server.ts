@@ -1,6 +1,9 @@
 import { json } from '@sveltejs/kit';
 import { spawnSync } from 'node:child_process';
+import fs from 'node:fs/promises';
 import path from 'node:path';
+import { getTenant } from '$lib/server/tenants';
+import { getCampaign } from '$lib/server/campaigns';
 import type { RequestHandler } from './$types';
 
 function isValidSegment(s: string): boolean {
@@ -14,20 +17,34 @@ export const POST: RequestHandler = async ({ params }) => {
 		return json({ error: 'Invalid parameters' }, { status: 400 });
 	}
 
-	const campaignPath = path.resolve(`../clients/${client_id}/ads/google/${filename}`);
-	const scriptPath = path.resolve('../scripts/deploy-google-ads.ts');
+	const slug = filename.replace(/\.json$/i, '');
+	const tenant = getTenant(client_id);
+	if (!tenant) return json({ error: `Tenant "${client_id}" not found` }, { status: 404 });
 
-	const result = spawnSync('bun', ['run', scriptPath, campaignPath], {
-		cwd: path.resolve('..'),
-		encoding: 'utf-8',
-		timeout: 90_000,
-		env: process.env,
-	});
+	const campaign = getCampaign(client_id, slug);
+	if (!campaign) return json({ error: `Campaign "${slug}" not found` }, { status: 404 });
 
-	if (result.status !== 0) {
-		const errorMsg = result.stderr?.trim() || result.stdout?.trim() || 'Deploy failed with no output.';
-		return json({ success: false, error: errorMsg }, { status: 500 });
+	// Write campaign data to a temp file for the deploy script
+	const tmpPath = path.join('/tmp', `deploy-${slug}-${Date.now()}.json`);
+	await fs.writeFile(tmpPath, JSON.stringify(campaign.data, null, 2), 'utf-8');
+
+	const scriptPath = path.resolve('scripts/deploy-google-ads.ts');
+
+	try {
+		const result = spawnSync('bun', ['run', scriptPath, tmpPath, client_id], {
+			cwd: path.resolve('.'),
+			encoding: 'utf-8',
+			timeout: 90_000,
+			env: process.env,
+		});
+
+		if (result.status !== 0) {
+			const errorMsg = result.stderr?.trim() || result.stdout?.trim() || 'Deploy failed with no output.';
+			return json({ success: false, error: errorMsg }, { status: 500 });
+		}
+
+		return json({ success: true, output: result.stdout?.trim() });
+	} finally {
+		await fs.unlink(tmpPath).catch(() => {});
 	}
-
-	return json({ success: true, output: result.stdout?.trim() });
 };
