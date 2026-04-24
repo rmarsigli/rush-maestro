@@ -1,7 +1,7 @@
 # T01 — Move SvelteKit from `ui/` to project root
 
 **Phase:** 0 — Foundation  
-**Status:** pending  
+**Status:** completed  
 **ADR:** ADR-001  
 **Depends on:** nothing  
 **Blocks:** all other tasks
