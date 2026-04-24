@@ -1,7 +1,7 @@
 # T09 — Implement MCP tools and resources
 
 **Phase:** 4 — MCP  
-**Status:** pending  
+**Status:** completed  
 **ADR:** ADR-001  
 **Depends on:** T05, T08  
 **Blocks:** T10

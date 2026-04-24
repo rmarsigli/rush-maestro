@@ -7,7 +7,7 @@ Objetivo: mover SvelteKit para a raiz, substituir flat-files por SQLite, expor M
 
 ## Estado atual
 
-**Última task concluída:** T08 — MCP server setup em `/mcp`
+**Última task concluída:** T09 — MCP tools e resources
 
 | Task | Status | Descrição |
 |---|---|---|
@@ -19,7 +19,7 @@ Objetivo: mover SvelteKit para a raiz, substituir flat-files por SQLite, expor M
 | T06 | ✅ completed | Storage adapter interface + implementação local |
 | T07 | ✅ completed | Migrar rotas UI de `fs.readFile` para funções SQLite |
 | T08 | ✅ completed | MCP server setup em `/mcp` via SvelteKit |
-| T09 | ⬜ pending | MCP tools e resources |
+| T09 | ✅ completed | MCP tools e resources |
 | T10 | ⬜ pending | Cleanup: remover flat-files, atualizar scripts e CLAUDE.md |
 
 ---
@@ -37,18 +37,13 @@ Objetivo: mover SvelteKit para a raiz, substituir flat-files por SQLite, expor M
 
 ---
 
-## Próximo passo: T09
+## Próximo passo: T10
 
-T09 registra todas as MCP tools e resources no servidor. Tools chamam as funções da camada de dados (T05); resources expõem dados read-only para browsing de agentes.
+T10 é o cleanup final: remover flat-files de `clients/`, simplificar scripts e atualizar o CLAUDE.md para refletir a arquitetura SQLite + MCP.
 
-**O que fazer:**
-1. Criar `src/lib/server/mcp/tools/content.ts` — tools de tenants, posts, reports, campaigns
-2. Importar e registrar no `createServer()` em `server.ts`
-3. Verificar com MCP Inspector ou `/mcp` no Claude Code
+**Pré-requisito:** confirmar que T07 e T09 estão verificadas antes de deletar qualquer flat-file.
 
-Ver detalhes em `T09-mcp-tools-and-resources.md`.
-
-**Atenção:** O servidor MCP usa `createServer()` (factory stateless) — cada request cria uma nova instância. Tools e resources devem ser registradas dentro da factory, não no módulo.
+Ver detalhes em `T10-cleanup-and-update-docs.md`.
 
 ---
 
