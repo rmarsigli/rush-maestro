@@ -18,7 +18,7 @@ export const load: PageServerLoad = async ({ params }) => {
 		client,
 		campaigns,
 		streamed: {
-			liveCampaigns: getLiveCampaigns(client.brand.google_ads_id)
+			liveCampaigns: getLiveCampaigns(client.brand.google_ads_id, params.tenant)
 		}
 	};
 };

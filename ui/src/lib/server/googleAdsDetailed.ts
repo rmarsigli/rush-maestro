@@ -1,5 +1,6 @@
 import { GoogleAdsApi } from 'google-ads-api';
 import { env } from '$env/dynamic/private';
+import { getCredentialsForTenant } from '$lib/server/integrations';
 
 export interface AdGroupMetrics {
     impressions: string;
@@ -104,9 +105,31 @@ function fromMicros(value: number | bigint | undefined, fallback = '0.00'): stri
     return value != null ? (Number(value) / 1_000_000).toFixed(2) : fallback;
 }
 
+function resolveDetailedCreds(tenantId: string) {
+    const dbCreds = getCredentialsForTenant(tenantId, 'google_ads');
+    if (dbCreds) return dbCreds;
+
+    const clientId        = env.GOOGLE_ADS_CLIENT_ID;
+    const clientSecret    = env.GOOGLE_ADS_CLIENT_SECRET;
+    const developerToken  = env.GOOGLE_ADS_DEVELOPER_TOKEN;
+    const refreshToken    = env.GOOGLE_ADS_REFRESH_TOKEN;
+    const loginCustomerId = env.GOOGLE_ADS_LOGIN_CUSTOMER_ID?.replace(/-/g, '') ?? '';
+
+    if (!clientId || !clientSecret || !developerToken || !refreshToken) return null;
+
+    return {
+        oauth_client_id: clientId,
+        oauth_client_secret: clientSecret,
+        developer_token: developerToken,
+        login_customer_id: loginCustomerId,
+        refresh_token: refreshToken,
+    };
+}
+
 export async function getDetailedCampaign(
-    customerId?: string,
-    campaignId?: string,
+    customerId: string | undefined,
+    campaignId: string | undefined,
+    tenantId: string,
     startDate?: string,
     endDate?: string,
 ): Promise<DetailedCampaign | null> {
@@ -114,24 +137,22 @@ export async function getDetailedCampaign(
         throw new Error(`Missing IDs. customerId=${customerId}, campaignId=${campaignId}`);
     }
 
-    const clientId        = env.GOOGLE_ADS_CLIENT_ID;
-    const clientSecret    = env.GOOGLE_ADS_CLIENT_SECRET;
-    const developerToken  = env.GOOGLE_ADS_DEVELOPER_TOKEN;
-    const refreshToken    = env.GOOGLE_ADS_REFRESH_TOKEN;
-    const loginCustomerId = env.GOOGLE_ADS_LOGIN_CUSTOMER_ID?.replace(/-/g, '');
-
-    if (!clientId || !clientSecret || !developerToken || !refreshToken) {
-        throw new Error(
-            `Missing Google Ads credentials. Details: clientId=${!!clientId}, secret=${!!clientSecret}, token=${!!developerToken}, refresh=${!!refreshToken}`,
-        );
+    const creds = resolveDetailedCreds(tenantId);
+    if (!creds) {
+        throw new Error(`No Google Ads credentials found for tenant "${tenantId}"`);
     }
 
     try {
-        const client = new GoogleAdsApi({ client_id: clientId, client_secret: clientSecret, developer_token: developerToken });
+        const client = new GoogleAdsApi({
+            client_id: creds.oauth_client_id,
+            client_secret: creds.oauth_client_secret,
+            developer_token: creds.developer_token,
+        });
 
+        const loginCustomerId = creds.login_customer_id?.replace(/-/g, '');
         const customer = client.Customer({
             customer_id: customerId.replace(/-/g, ''),
-            refresh_token: refreshToken,
+            refresh_token: creds.refresh_token,
             ...(loginCustomerId ? { login_customer_id: loginCustomerId } : {}),
         });
 

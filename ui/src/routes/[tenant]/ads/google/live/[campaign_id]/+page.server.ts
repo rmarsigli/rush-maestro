@@ -46,7 +46,7 @@ export const load: PageServerLoad = async ({ params, url }) => {
 	const endDate   = url.searchParams.get('endDate')   || undefined;
 
 	const campaign = await getDetailedCampaign(
-		client.brand.google_ads_id, params.campaign_id, startDate, endDate
+		client.brand.google_ads_id, params.campaign_id, params.tenant, startDate, endDate
 	);
 
 	if (!campaign) error(404, 'Live campaign not found in Google Ads');

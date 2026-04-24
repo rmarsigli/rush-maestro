@@ -23,7 +23,7 @@ export const POST: RequestHandler = async ({ params, url }) => {
     const startDate = url.searchParams.get('startDate') || undefined;
     const endDate = url.searchParams.get('endDate') || undefined;
 
-    const campaign = await getDetailedCampaign(client.brand.google_ads_id, params.campaign_id, startDate, endDate);
+    const campaign = await getDetailedCampaign(client.brand.google_ads_id, params.campaign_id, params.client_id, startDate, endDate);
 
     if (!campaign) {
         error(404, 'Live campaign not found in Google Ads');
