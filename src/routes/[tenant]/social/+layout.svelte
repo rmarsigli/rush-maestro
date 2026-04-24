@@ -11,7 +11,7 @@
 <div class="flex flex-col flex-1 min-h-0">
 	<!-- Sub-nav -->
 	<div class="bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 px-4 sm:px-6 lg:px-8">
-		<div class="max-w-7xl mx-auto flex items-center gap-1 -mb-px">
+		<div class="flex items-center gap-1 -mb-px">
 			<a
 				href="{$page.params.tenant ? `/${$page.params.tenant}/social` : '/social'}"
 				class="flex items-center gap-2 px-4 py-3 text-sm font-medium border-b-2 transition-colors {!isDrafts
