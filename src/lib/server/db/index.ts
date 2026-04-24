@@ -6,6 +6,7 @@ const DB_PATH = path.resolve(process.cwd(), 'db/marketing.db');
 const MIGRATIONS = [
   path.resolve(process.cwd(), 'db/migrations/001_schema.sql'),
   path.resolve(process.cwd(), 'db/migrations/002_integrations.sql'),
+  path.resolve(process.cwd(), 'db/migrations/003_content.sql'),
 ];
 
 let _db: Database | null = null;
