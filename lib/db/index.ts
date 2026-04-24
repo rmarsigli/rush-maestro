@@ -19,8 +19,10 @@ const MIGRATION_PATH = path.resolve(__dir, '../../db/migrations/001_schema.sql')
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 let DatabaseImpl: any;
 
-if (typeof Bun !== 'undefined') {
+if (typeof (globalThis as Record<string, unknown>).Bun !== 'undefined') {
   // Running in Bun — use native built-in
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+  // @ts-ignore — bun:sqlite only available in Bun runtime
   const mod = await import(/* @vite-ignore */ 'bun:sqlite');
   DatabaseImpl = mod.Database;
 } else {
