@@ -62,3 +62,26 @@ export const POST: RequestHandler = async ({ params, request }) => {
 		return json({ success: false, error: 'Failed to upload media' }, { status: 500 });
 	}
 };
+
+export const DELETE: RequestHandler = async ({ params }) => {
+	const { client_id, filename } = params;
+
+	if (!isValidSegment(client_id) || !isValidSegment(filename)) {
+		return json({ error: 'Invalid parameters' }, { status: 400 });
+	}
+
+	const prefix = filename.replace('.json', '');
+	const postsDir = path.join(CLIENTS_DIR, client_id, 'posts');
+
+	try {
+		const entries = await fs.readdir(postsDir);
+		for (const entry of entries) {
+			if (entry !== filename && (entry.startsWith(prefix + '.') || entry.startsWith(prefix + '-'))) {
+				await fs.unlink(path.join(postsDir, entry)).catch(() => {});
+			}
+		}
+		return json({ success: true });
+	} catch {
+		return json({ error: 'Failed to delete media' }, { status: 500 });
+	}
+};

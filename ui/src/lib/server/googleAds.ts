@@ -77,6 +77,7 @@ export async function getLiveCampaigns(customerId?: string): Promise<LiveCampaig
         }));
     } catch (err) {
         console.error('[Google Ads] API error:', err);
-        return [];
+        const msg = err instanceof Error ? err.message : String(err);
+        throw new Error(msg.includes('invalid_grant') ? 'invalid_grant' : msg);
     }
 }
