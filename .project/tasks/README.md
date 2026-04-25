@@ -1,4 +1,4 @@
-# Tasks — Marketing CMS Refactor
+# Tasks — Rush Maestro
 
 Refactor guided by **ADR-001** (`.project/adrs/001-sveltekit-sqlite-mcp.md`).  
 Goal: move SvelteKit to root, replace flat-files with SQLite, expose MCP at `/mcp`.

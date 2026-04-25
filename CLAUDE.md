@@ -1,4 +1,4 @@
-# Marketing CMS — Context for Claude Code
+# Rush Maestro — Context for Claude Code
 
 Local marketing management system with multi-tenant support. Combines a CMS with SQLite, AI-assisted content generation, Google Ads API integration, and an MCP server as the single communication layer for all agents.
 
