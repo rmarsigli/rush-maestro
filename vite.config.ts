@@ -12,6 +12,9 @@ export default defineConfig({
 			'$db': path.resolve('./src/lib/server/db'),
 		}
 	},
+	optimizeDeps: {
+		include: ['google-ads-api', 'marked'],
+	},
 	ssr: {
 		external: ['bun:sqlite'],
 	},
