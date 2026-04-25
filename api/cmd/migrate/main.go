@@ -33,12 +33,26 @@ func main() {
 	}
 
 	args := os.Args[1:]
-	if len(args) == 0 {
-		args = []string{"up"}
+	cmd := "up"
+	if len(args) > 0 {
+		cmd = args[0]
 	}
 
-	if err := goose.RunContext(context.Background(), args[0], db, "migrations"); err != nil {
-		slog.Error("migration error", "err", err)
+	ctx := context.Background()
+	var runErr error
+	switch cmd {
+	case "up":
+		runErr = goose.UpContext(ctx, db, "migrations", goose.WithAllowMissing())
+	case "down":
+		runErr = goose.Down(db, "migrations")
+	case "status":
+		runErr = goose.Status(db, "migrations")
+	default:
+		runErr = goose.RunContext(ctx, cmd, db, "migrations")
+	}
+
+	if runErr != nil {
+		slog.Error("migration error", "err", runErr)
 		os.Exit(1)
 	}
 }

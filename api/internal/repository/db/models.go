@@ -5,12 +5,129 @@
 package db
 
 import (
+	"encoding/json"
 	"time"
+
+	"github.com/jackc/pgx/v5/pgtype"
 )
+
+type AgentRun struct {
+	ID         string             `json:"id"`
+	TenantID   *string            `json:"tenant_id"`
+	Agent      string             `json:"agent"`
+	Status     string             `json:"status"`
+	StartedAt  time.Time          `json:"started_at"`
+	FinishedAt pgtype.Timestamptz `json:"finished_at"`
+	Summary    *string            `json:"summary"`
+	Error      *string            `json:"error"`
+}
+
+type AlertEvent struct {
+	ID           string             `json:"id"`
+	TenantID     string             `json:"tenant_id"`
+	Level        string             `json:"level"`
+	Type         string             `json:"type"`
+	CampaignID   *string            `json:"campaign_id"`
+	CampaignName *string            `json:"campaign_name"`
+	Message      string             `json:"message"`
+	Details      []byte             `json:"details"`
+	ResolvedAt   pgtype.Timestamptz `json:"resolved_at"`
+	IgnoredAt    pgtype.Timestamptz `json:"ignored_at"`
+	CreatedAt    time.Time          `json:"created_at"`
+}
+
+type Campaign struct {
+	ID         string             `json:"id"`
+	TenantID   string             `json:"tenant_id"`
+	Slug       string             `json:"slug"`
+	Data       json.RawMessage    `json:"data"`
+	DeployedAt pgtype.Timestamptz `json:"deployed_at"`
+	CreatedAt  time.Time          `json:"created_at"`
+	UpdatedAt  time.Time          `json:"updated_at"`
+}
+
+type DailyMetric struct {
+	ID                    string         `json:"id"`
+	TenantID              string         `json:"tenant_id"`
+	Date                  pgtype.Date    `json:"date"`
+	CampaignID            string         `json:"campaign_id"`
+	CampaignName          string         `json:"campaign_name"`
+	Impressions           int32          `json:"impressions"`
+	Clicks                int32          `json:"clicks"`
+	CostBrl               pgtype.Numeric `json:"cost_brl"`
+	Conversions           pgtype.Numeric `json:"conversions"`
+	CpaBrl                pgtype.Numeric `json:"cpa_brl"`
+	Ctr                   pgtype.Numeric `json:"ctr"`
+	SearchImpressionShare pgtype.Numeric `json:"search_impression_share"`
+	CreatedAt             time.Time      `json:"created_at"`
+}
+
+type Integration struct {
+	ID                string    `json:"id"`
+	Name              string    `json:"name"`
+	Provider          string    `json:"provider"`
+	Group             string    `json:"group"`
+	OauthClientID     *string   `json:"oauth_client_id"`
+	OauthClientSecret *string   `json:"oauth_client_secret"`
+	DeveloperToken    *string   `json:"developer_token"`
+	LoginCustomerID   *string   `json:"login_customer_id"`
+	RefreshToken      *string   `json:"refresh_token"`
+	Status            string    `json:"status"`
+	ErrorMessage      *string   `json:"error_message"`
+	CreatedAt         time.Time `json:"created_at"`
+	UpdatedAt         time.Time `json:"updated_at"`
+}
+
+type IntegrationTenant struct {
+	IntegrationID string `json:"integration_id"`
+	TenantID      string `json:"tenant_id"`
+}
+
+type MonthlySummary struct {
+	ID           string         `json:"id"`
+	TenantID     string         `json:"tenant_id"`
+	Month        string         `json:"month"`
+	CampaignID   string         `json:"campaign_id"`
+	CampaignName string         `json:"campaign_name"`
+	Impressions  int32          `json:"impressions"`
+	Clicks       int32          `json:"clicks"`
+	CostBrl      pgtype.Numeric `json:"cost_brl"`
+	Conversions  pgtype.Numeric `json:"conversions"`
+	AvgCpaBrl    pgtype.Numeric `json:"avg_cpa_brl"`
+	CreatedAt    time.Time      `json:"created_at"`
+}
 
 type Permission struct {
 	ID   string `json:"id"`
 	Name string `json:"name"`
+}
+
+type Post struct {
+	ID            string             `json:"id"`
+	TenantID      string             `json:"tenant_id"`
+	Status        string             `json:"status"`
+	Title         *string            `json:"title"`
+	Content       string             `json:"content"`
+	Hashtags      json.RawMessage    `json:"hashtags"`
+	MediaType     *string            `json:"media_type"`
+	Workflow      []byte             `json:"workflow"`
+	MediaPath     *string            `json:"media_path"`
+	Platforms     json.RawMessage    `json:"platforms"`
+	ScheduledDate *string            `json:"scheduled_date"`
+	ScheduledTime *string            `json:"scheduled_time"`
+	PublishedAt   pgtype.Timestamptz `json:"published_at"`
+	CreatedAt     time.Time          `json:"created_at"`
+	UpdatedAt     time.Time          `json:"updated_at"`
+}
+
+type Report struct {
+	ID        string    `json:"id"`
+	TenantID  string    `json:"tenant_id"`
+	Slug      string    `json:"slug"`
+	Type      string    `json:"type"`
+	Title     *string   `json:"title"`
+	Content   string    `json:"content"`
+	CreatedAt time.Time `json:"created_at"`
 }
 
 type Role struct {
@@ -22,6 +139,22 @@ type Role struct {
 type RolePermission struct {
 	RoleID       string `json:"role_id"`
 	PermissionID string `json:"permission_id"`
+}
+
+type Tenant struct {
+	ID             string          `json:"id"`
+	Name           string          `json:"name"`
+	Language       string          `json:"language"`
+	Niche          *string         `json:"niche"`
+	Location       *string         `json:"location"`
+	PrimaryPersona *string         `json:"primary_persona"`
+	Tone           *string         `json:"tone"`
+	Instructions   *string         `json:"instructions"`
+	Hashtags       json.RawMessage `json:"hashtags"`
+	GoogleAdsID    *string         `json:"google_ads_id"`
+	AdsMonitoring  []byte          `json:"ads_monitoring"`
+	CreatedAt      time.Time       `json:"created_at"`
+	UpdatedAt      time.Time       `json:"updated_at"`
 }
 
 type User struct {
