@@ -17,7 +17,9 @@ import (
 
 	"github.com/rush-maestro/rush-maestro/internal/api"
 	"github.com/rush-maestro/rush-maestro/internal/config"
+	"github.com/rush-maestro/rush-maestro/internal/domain"
 	"github.com/rush-maestro/rush-maestro/internal/middleware"
+	"github.com/rush-maestro/rush-maestro/internal/repository"
 )
 
 func main() {
@@ -43,22 +45,57 @@ func main() {
 	}
 	slog.Info("database connected")
 
+	userRepo := repository.NewUserRepository(pool)
+	rbacRepo := repository.NewRBACRepository(pool)
+	jwtSvc := domain.NewJWTService(cfg.JWTSecret)
+
 	r := chi.NewRouter()
 	r.Use(chimw.RealIP)
 	r.Use(chimw.Recoverer)
 	r.Use(chimw.Timeout(30 * time.Second))
 	r.Use(middleware.RequestLogger)
 
-	healthHandler := &api.HealthHandler{
-		SetupRequired: func() bool { return false }, // substituir na T12
-	}
-	r.Get("/health", healthHandler.Handle)
+	r.Get("/health", api.NewHealthHandler(userRepo).Handle)
+
+	r.Post("/setup", api.NewSetupHandler(userRepo).Create)
+
+	authHandler := api.NewAuthHandler(
+		userRepo, rbacRepo, jwtSvc,
+		cfg.CookieDomain, cfg.IsProduction(),
+	)
+	r.Route("/auth", func(r chi.Router) {
+		r.Use(middleware.AdminCORS(cfg.AdminCORSOrigins))
+		r.Post("/login", authHandler.Login)
+		r.Post("/refresh", authHandler.Refresh)
+		r.Post("/logout", authHandler.Logout)
+		r.Group(func(r chi.Router) {
+			r.Use(middleware.AuthenticateAdmin(jwtSvc))
+			r.Get("/me", authHandler.Me)
+			r.Put("/me", authHandler.UpdateMe)
+			r.Post("/change-password", authHandler.ChangePassword)
+		})
+	})
+
+	usersHandler := api.NewAdminUsersHandler(userRepo, rbacRepo)
+	rolesHandler := api.NewAdminRolesHandler(rbacRepo)
 
 	r.Route("/admin", func(r chi.Router) {
 		r.Use(middleware.AdminCORS(cfg.AdminCORSOrigins))
-		r.Get("/", func(w http.ResponseWriter, r *http.Request) {
-			w.WriteHeader(http.StatusOK)
-		})
+		r.Use(middleware.AuthenticateAdmin(jwtSvc))
+
+		r.With(middleware.RequirePermission("view-any:user")).Get("/users", usersHandler.List)
+		r.With(middleware.RequirePermission("create:user")).Post("/users", usersHandler.Create)
+		r.With(middleware.RequirePermission("view:user")).Get("/users/{id}", usersHandler.Get)
+		r.With(middleware.RequirePermission("update:user")).Put("/users/{id}", usersHandler.Update)
+		r.With(middleware.RequirePermission("delete:user")).Delete("/users/{id}", usersHandler.Delete)
+		r.With(middleware.RequirePermission("update:user")).Put("/users/{id}/role", usersHandler.AssignRole)
+
+		r.With(middleware.RequirePermission("view-any:role")).Get("/roles", rolesHandler.List)
+		r.With(middleware.RequirePermission("create:role")).Post("/roles", rolesHandler.Create)
+		r.With(middleware.RequirePermission("view:role")).Get("/roles/{id}", rolesHandler.Get)
+		r.With(middleware.RequirePermission("update:role")).Put("/roles/{id}/permissions", rolesHandler.SetPermissions)
+		r.With(middleware.RequirePermission("delete:role")).Delete("/roles/{id}", rolesHandler.Delete)
+		r.With(middleware.RequirePermission("view:role")).Get("/permissions", rolesHandler.ListPermissions)
 	})
 
 	srv := &http.Server{
