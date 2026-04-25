@@ -114,6 +114,7 @@ export function registerContentTools(server: McpServer): void {
 			title: data.title ?? null,
 			content: data.content,
 			hashtags: data.hashtags ?? [],
+			platform: [],
 			media_type: (data.media_type as MediaType) ?? null,
 			workflow: null,
 			media_path: null,

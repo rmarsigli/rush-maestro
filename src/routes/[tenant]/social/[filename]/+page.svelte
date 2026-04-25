@@ -1,14 +1,22 @@
 <script lang="ts">
+	import { untrack } from 'svelte';
 	import type { PageData } from './$types';
 	import { ArrowLeft, Save, FileEdit, Trash2 } from 'lucide-svelte';
 
 	let { data } = $props<{ data: PageData }>();
 
-	let title = $state(data.post.title);
-	let content = $state(data.post.content);
-	let hashtags = $state(data.post.hashtags.join(' '));
-	let status = $state(data.post.status);
-	let mediaType = $state(data.post.media_type);
+	let title = $state(untrack(() => data.post.title));
+	let content = $state(untrack(() => data.post.content));
+	let hashtags = $state(untrack(() => data.post.hashtags.join(' ')));
+	let status = $state(untrack(() => data.post.status));
+	let mediaType = $state(untrack(() => data.post.media_type));
+	$effect(() => {
+		title = data.post.title;
+		content = data.post.content;
+		hashtags = data.post.hashtags.join(' ');
+		status = data.post.status;
+		mediaType = data.post.media_type;
+	});
 	let saving = $state(false);
 	let uploadingMedia = $state(false);
 
@@ -101,17 +109,19 @@
 	<!-- Editor -->
 	<div class="lg:col-span-2 space-y-6">
 		<div>
-			<label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Title (Internal)</label>
-			<input 
-				type="text" 
+			<label for="post-title" class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Title (Internal)</label>
+			<input
+				id="post-title"
+				type="text"
 				bind:value={title}
 				class="w-full rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
 			/>
 		</div>
 		
 		<div>
-			<label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Post Content</label>
-			<textarea 
+			<label for="post-content" class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Post Content</label>
+			<textarea
+				id="post-content"
 				bind:value={content}
 				rows="16"
 				class="w-full rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-y"
@@ -119,9 +129,10 @@
 		</div>
 
 		<div>
-			<label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Hashtags (space separated)</label>
-			<input 
-				type="text" 
+			<label for="post-hashtags" class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Hashtags (space separated)</label>
+			<input
+				id="post-hashtags"
+				type="text"
 				bind:value={hashtags}
 				class="w-full rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 font-mono"
 			/>
@@ -138,7 +149,9 @@
 					{#each data.post.media_files as mediaFile}
 						<div class="rounded-lg overflow-hidden border border-slate-200 dark:border-slate-700 bg-slate-100 dark:bg-slate-900 flex items-center justify-center aspect-video relative group">
 							{#if mediaFile.match(/\.(mp4|webm)$/i)}
-								<video src="/api/media/{data.client_id}/{mediaFile}" controls class="w-full h-full object-cover"></video>
+								<video src="/api/media/{data.client_id}/{mediaFile}" controls class="w-full h-full object-cover">
+									<track kind="captions" />
+								</video>
 							{:else}
 								<img src="/api/media/{data.client_id}/{mediaFile}" alt="Post Media" class="w-full h-full object-cover" />
 							{/if}

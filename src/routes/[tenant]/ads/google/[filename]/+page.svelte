@@ -1,10 +1,12 @@
 <script lang="ts">
+	import { untrack } from 'svelte';
 	import type { PageData } from './$types';
 	import { ArrowLeft, Save, Search, Target, DollarSign, LayoutList } from 'lucide-svelte';
 
 	let { data } = $props<{ data: PageData }>();
-	
-	let campaign = $state(data.campaign);
+
+	let campaign = $state(untrack(() => data.campaign));
+	$effect(() => { campaign = data.campaign; });
 	let saving = $state(false);
 	let saveError = $state('');
 
@@ -58,18 +60,20 @@
 			
 			<div class="space-y-4">
 				<div>
-					<label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Objective</label>
-					<input 
-						type="text" 
+					<label for="campaign-objective" class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Objective</label>
+					<input
+						id="campaign-objective"
+						type="text"
 						bind:value={campaign.objective}
 						class="w-full rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
 					/>
 				</div>
 				
 				<div>
-					<label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Budget Suggestion</label>
-					<input 
-						type="text" 
+					<label for="campaign-budget" class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Budget Suggestion</label>
+					<input
+						id="campaign-budget"
+						type="text"
 						bind:value={campaign.budget_suggestion}
 						class="w-full rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
 					/>
@@ -85,9 +89,10 @@
 			{#each campaign.ad_groups as group, i}
 				<div class="bg-white dark:bg-slate-900 rounded-xl p-6 border border-slate-200 dark:border-slate-800 shadow-sm">
 					<div class="mb-4">
-						<label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Ad Group Name</label>
-						<input 
-							type="text" 
+						<label for="ad-group-name-{i}" class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Ad Group Name</label>
+						<input
+							id="ad-group-name-{i}"
+							type="text"
 							bind:value={campaign.ad_groups[i].name}
 							class="w-full rounded-md border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50 px-3 py-2 text-sm font-bold focus:outline-none focus:ring-2 focus:ring-indigo-500"
 						/>
@@ -95,16 +100,18 @@
 
 					<div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
 						<div>
-							<label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Keywords</label>
-							<textarea 
+							<label for="ad-group-keywords-{i}" class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Keywords</label>
+							<textarea
+								id="ad-group-keywords-{i}"
 								value={group.keywords.join('\n')}
 								rows="4"
 								class="w-full rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-sm font-mono text-slate-600 dark:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500"
 							></textarea>
 						</div>
 						<div>
-							<label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Negative Keywords</label>
-							<textarea 
+							<label for="ad-group-neg-{i}" class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Negative Keywords</label>
+							<textarea
+								id="ad-group-neg-{i}"
 								value={group.negative_keywords.join('\n')}
 								rows="4"
 								class="w-full rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-sm font-mono text-slate-600 dark:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500"

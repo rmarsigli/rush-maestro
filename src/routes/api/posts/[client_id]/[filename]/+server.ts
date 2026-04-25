@@ -29,8 +29,11 @@ export const POST: RequestHandler = async ({ params, request }) => {
 	if (body.title !== undefined) patch.title = body.title as string;
 	if (body.content !== undefined) patch.content = body.content as string;
 	if (body.hashtags !== undefined) patch.hashtags = body.hashtags as string[];
+	if (body.platform !== undefined) patch.platform = body.platform as string[];
 	if (body.status !== undefined) patch.status = body.status as PostStatus;
 	if (body.media_type !== undefined) patch.media_type = body.media_type as MediaType;
+	if (body.scheduled_date !== undefined) patch.scheduled_date = body.scheduled_date as string | null;
+	if (body.scheduled_time !== undefined) patch.scheduled_time = body.scheduled_time as string | null;
 
 	updatePost(id, patch);
 	return json({ success: true });
@@ -49,7 +52,7 @@ export const PATCH: RequestHandler = async ({ params, request }) => {
 	if (!post) return json({ error: 'Post not found' }, { status: 404 });
 
 	const patch: Parameters<typeof updatePost>[1] = {};
-	const allowed: (keyof typeof patch)[] = ['status', 'title', 'content', 'hashtags', 'media_type'];
+	const allowed: (keyof typeof patch)[] = ['status', 'title', 'content', 'hashtags', 'platform', 'media_type', 'scheduled_date', 'scheduled_time'];
 	for (const key of allowed) {
 		if (body[key] !== undefined) (patch as Record<string, unknown>)[key] = body[key];
 	}

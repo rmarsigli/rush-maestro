@@ -47,14 +47,14 @@
 		return total % 1 === 0 ? String(total) : total.toFixed(1);
 	}
 
-	const lastRun = data.lastRun as AgentRunRow | null;
-	const isHealthy = lastRun?.status === 'success';
+	const lastRun = $derived(data.lastRun as AgentRunRow | null);
+	const isHealthy = $derived(lastRun?.status === 'success');
 
 	// Hours since last run (for staleness warning)
-	const hoursSince = lastRun
+	const hoursSince = $derived(lastRun
 		? (Date.now() - new Date(lastRun.created_at).getTime()) / 3_600_000
-		: Infinity;
-	const isStale = hoursSince > 26;
+		: Infinity);
+	const isStale = $derived(hoursSince > 26);
 </script>
 
 <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full">

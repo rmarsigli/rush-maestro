@@ -8,6 +8,7 @@ const MIGRATIONS = [
   '002_integrations.sql',
   '003_content.sql',
   '004_posts_scheduled_date.sql',
+  '005_posts_platform.sql',
 ];
 
 let _db: Database | null = null;

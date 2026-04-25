@@ -34,11 +34,12 @@ export const POST: RequestHandler = async ({ params, request }) => {
 			title: (result.title as string) ?? null,
 			content: (result.content as string) ?? '',
 			hashtags: (result.hashtags as string[]) ?? [],
+			platform: (result.platform as string[]) ?? [],
 			media_type: (result.media_type as MediaType) ?? null,
 			workflow: (body.workflow as Record<string, unknown>) ?? null,
 			media_path: null,
-			scheduled_date: null,
-			scheduled_time: null,
+			scheduled_date: (result.scheduled_date as string) ?? null,
+			scheduled_time: (result.scheduled_time as string) ?? null,
 			published_at: null,
 		});
 

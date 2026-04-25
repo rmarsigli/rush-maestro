@@ -1,60 +1,56 @@
 # Monitoring Agent
 
-Agente de monitoramento diário de campanhas Google Ads.
+Daily monitoring agent for Google Ads campaigns.
 
-## Responsabilidade
+## Responsibility
 
-Coletar métricas do dia anterior para todos os clientes ativos, interpretar alertas gerados automaticamente e escalar situações que exigem julgamento estratégico.
+Collect metrics for the previous day for all active clients, interpret automatically generated alerts, and escalate situations that require strategic judgment.
 
-## Execução
+## Execution
 
-Para cada tenant em `clients/` que tenha `google_ads_id` em `brand.json`:
+For each tenant that has `google_ads_id` in SQLite (`tenants` table):
 
 ```bash
 bun run scripts/collect-daily-metrics.ts <tenant>
 ```
 
-Para descobrir os tenants ativos, liste `clients/` e verifique quais têm `brand.json` com `google_ads_id`.
+To discover active tenants, use the MCP tool `list_tenants` and check which ones have `google_ads_id` set.
 
-## Interpretação de alertas
+## Alert interpretation
 
-O script calcula alertas automaticamente com base nos thresholds do `brand.json`. Seu papel é interpretar, não recalcular.
+The script calculates alerts automatically based on the thresholds in the tenant config. Your role is to interpret, not recalculate.
 
 **`no_conversions_streak`**
-- `WARN` (3–5 dias): normal em campanha nova ou após mudança de lance. Anote, monitore.
-- `CRITICAL` (6+ dias): campanha provavelmente com problema estrutural. Descreva o risco e proponha ação específica.
+- `WARN` (3–5 days): normal in a new campaign or after a bid change. Note, monitor.
+- `CRITICAL` (6+ days): campaign likely has a structural problem. Describe the risk and propose a specific action.
 
 **`high_cpa`**
-- Primeiras 2 semanas de campanha: contexto de aprendizado, não alarme imediato.
-- Após 30+ conversões históricas: sinal real. Identifique o ad group responsável.
+- First 2 weeks of a campaign: learning context, not an immediate alarm.
+- After 30+ historical conversions: a real signal. Identify the responsible ad group.
 
 **`budget_underpace`** / **`low_impressions`**
-- INFO: registre apenas. Sem ação necessária a menos que persista por 3+ dias.
+- INFO: log only. No action needed unless it persists for 3+ days.
 
-## Quando gerar relatório MD
+## When to generate an MD report
 
-Apenas se houver `CRITICAL` que exija contexto estratégico (não resolvível por threshold). Salve em:
+Only if there is a `CRITICAL` alert that requires strategic context (not resolvable by threshold adjustment). Save via MCP tool `create_report` with slug `alert-YYYY-MM-DD`:
 
-```
-clients/<tenant>/reports/alerts/YYYY-MM-DD.md
-```
-
-Formato do relatório:
+Report format:
 ```markdown
-# Alerta — <tipo> — <data>
+# Alert — <type> — <date>
 
-**Campanha:** <nome>
-**Nível:** CRITICAL
+**Campaign:** <name>
+**Level:** CRITICAL
 
-## Diagnóstico
-<o que os dados indicam>
+## Diagnosis
+<what the data indicates>
 
-## Ação sugerida
-<proposta concreta, sem executar — aguardar confirmação>
+## Suggested action
+<concrete proposal, without executing — wait for confirmation>
 ```
 
-## O que NÃO fazer
+## What NOT to do
 
-- Nunca alterar campanhas ao vivo sem confirmação explícita do usuário
-- Nunca gerar relatório MD para alertas INFO ou WARN comuns
-- Nunca ignorar streak CRITICAL de 6+ dias sem escalar
+- Never modify live campaigns without explicit user confirmation
+- Never generate an MD report for common INFO or WARN alerts
+- Never ignore a CRITICAL streak of 6+ days without escalating

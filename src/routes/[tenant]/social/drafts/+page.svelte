@@ -1,22 +1,27 @@
 <script lang="ts">
+	import { SiInstagram, SiFacebook } from '@icons-pack/svelte-simple-icons';
+	import { untrack } from 'svelte';
 	import { FileEdit, CalendarPlus, Check, Clock, Plus, Pencil, X, ImagePlus, Trash2 } from 'lucide-svelte';
-	import { Dialog } from 'bits-ui';
 	import type { PageData } from './$types';
 	import type { PostWithMeta, PostPlatform } from '$lib/server/db';
-	import { PLATFORM_OPTIONS as PLATFORMS, normPlatforms } from '$lib/social';
+	import { PLATFORM_CONFIG as PLATFORM, normPlatforms } from '$lib/social';
 	import ConfirmDialog from '$lib/components/ui/dialog/ConfirmDialog.svelte';
-	import MultiSelect from '$lib/components/ui/multiselect/MultiSelect.svelte';
+	import PlatformSelect from '$lib/components/ui/platform-select/PlatformSelect.svelte';
+	import Drawer from '$lib/components/ui/drawer/Drawer.svelte';
 
 	let { data } = $props<{ data: PageData }>();
 
-	let drafts = $state<PostWithMeta[]>([...data.drafts]);
+	let drafts = $state<PostWithMeta[]>(untrack(() => [...data.drafts]));
 
 	const STATUS_BADGE: Record<string, string> = {
 		draft: 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300',
 		approved: 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300',
 	};
 
-	// ── Create modal ──────────────────────────────────────────────────────────
+	const inputCls = 'w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-sm px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500';
+	const labelCls = 'block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5';
+
+	// ── Create drawer ─────────────────────────────────────────────────────────
 	let showCreate = $state(false);
 	let newTitle = $state('');
 	let newContent = $state('');
@@ -25,9 +30,7 @@
 	let isCreating = $state(false);
 
 	function openCreate() {
-		newTitle = '';
-		newContent = '';
-		newHashtags = '';
+		newTitle = ''; newContent = ''; newHashtags = '';
 		showCreate = true;
 	}
 
@@ -36,16 +39,9 @@
 		isCreating = true;
 		try {
 			const dateStr = new Date().toISOString().slice(0, 10);
-			const slug = newTitle
-				.toLowerCase()
-				.replace(/[^a-z0-9]+/g, '-')
-				.replace(/(^-|-$)/g, '');
+			const slug = newTitle.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
 			const id = `${dateStr}_${slug || 'post'}`;
-			const tags = newHashtags
-				.split(/\s+/)
-				.map((t) => t.trim())
-				.filter(Boolean);
-
+			const tags = newHashtags.split(/\s+/).map((t) => t.trim()).filter(Boolean);
 			const res = await fetch(`/api/posts/${data.tenant}/import`, {
 				method: 'POST',
 				headers: { 'Content-Type': 'application/json' },
@@ -69,21 +65,17 @@
 				}
 				drafts = [{
 					id, status: 'draft', title: newTitle, content: newContent,
-					hashtags: tags, media_type: 'image',
+					hashtags: tags, platform: [], media_type: 'image',
 					client_id: data.tenant, filename: body.filename,
 					media_files: mediaFiles, workflow: {},
 				}, ...drafts];
-				newTitle = '';
-				newContent = '';
-				newHashtags = '';
 				showCreate = false;
 			}
-		} finally {
-			isCreating = false;
-		}
+		} finally { isCreating = false; }
 	}
 
-	// ── Edit modal ────────────────────────────────────────────────────────────
+	// ── Edit drawer ───────────────────────────────────────────────────────────
+	let showEdit = $state(false);
 	let editingPost = $state<PostWithMeta | null>(null);
 	let editTitle = $state('');
 	let editContent = $state('');
@@ -100,7 +92,10 @@
 		editHashtags = post.hashtags?.join(' ') ?? '';
 		editPlatforms = normPlatforms(post.platform);
 		editMediaFiles = [...(post.media_files ?? [])];
+		showEdit = true;
 	}
+
+	$effect(() => { if (!showEdit) editingPost = null; });
 
 	async function saveEdit() {
 		if (!editingPost || !editTitle.trim() || !editContent.trim()) return;
@@ -115,12 +110,10 @@
 			editingPost.title = editTitle;
 			editingPost.content = editContent;
 			editingPost.hashtags = tags;
-			editingPost.platform = editPlatforms[0];
+			editingPost.platform = editPlatforms;
 			drafts = [...drafts];
-			editingPost = null;
-		} finally {
-			isSavingEdit = false;
-		}
+			showEdit = false;
+		} finally { isSavingEdit = false; }
 	}
 
 	async function handleMediaUpload(event: Event) {
@@ -165,16 +158,15 @@
 			const res = await fetch(`/api/posts/${data.tenant}/${postToDelete.filename}`, { method: 'DELETE' });
 			if (res.ok) {
 				drafts = drafts.filter((p) => p.id !== postToDelete!.id);
-				if (editingPost?.id === postToDelete.id) editingPost = null;
+				if (editingPost?.id === postToDelete.id) showEdit = false;
 				postToDelete = null;
 				showDeleteConfirm = false;
 			}
-		} finally {
-			isDeletingPost = false;
-		}
+		} finally { isDeletingPost = false; }
 	}
 
-	// ── Schedule modal ────────────────────────────────────────────────────────
+	// ── Schedule drawer ───────────────────────────────────────────────────────
+	let showSchedule = $state(false);
 	let schedulingPost = $state<PostWithMeta | null>(null);
 	let schedDate = $state('');
 	let schedTime = $state('10:00');
@@ -186,7 +178,10 @@
 		schedDate = '';
 		schedTime = '10:00';
 		schedPlatforms = normPlatforms(post.platform).length > 0 ? normPlatforms(post.platform) : ['instagram_feed'];
+		showSchedule = true;
 	}
+
+	$effect(() => { if (!showSchedule) schedulingPost = null; });
 
 	async function saveSchedule() {
 		if (!schedulingPost || !schedDate) return;
@@ -198,10 +193,8 @@
 				body: JSON.stringify({ status: 'scheduled', scheduled_date: schedDate, scheduled_time: schedTime || undefined, platform: schedPlatforms }),
 			});
 			drafts = drafts.filter((p) => p.id !== schedulingPost!.id);
-			schedulingPost = null;
-		} finally {
-			isSavingSched = false;
-		}
+			showSchedule = false;
+		} finally { isSavingSched = false; }
 	}
 
 	// ── Approve toggle ────────────────────────────────────────────────────────
@@ -218,13 +211,8 @@
 			});
 			post.status = newStatus;
 			drafts = [...drafts];
-		} finally {
-			approvingId = null;
-		}
+		} finally { approvingId = null; }
 	}
-
-	const inputCls = 'w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-sm px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500';
-	const labelCls = 'block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5';
 </script>
 
 <div class="mx-auto w-full max-w-5xl px-4 py-6 sm:px-6 lg:px-8">
@@ -267,7 +255,7 @@
 					{#if post.media_files?.length > 0}
 						<div class="h-16 w-16 shrink-0 overflow-hidden rounded-lg border border-slate-200 bg-slate-900 dark:border-slate-700">
 							{#if post.media_files[0].match(/\.(mp4|webm)$/i)}
-								<video src="/api/media/{data.tenant}/{post.media_files[0]}" class="h-full w-full object-contain"></video>
+								<video src="/api/media/{data.tenant}/{post.media_files[0]}" class="h-full w-full object-contain"><track kind="captions" /></video>
 							{:else}
 								<img src="/api/media/{data.tenant}/{post.media_files[0]}" alt="" class="h-full w-full object-contain" />
 							{/if}
@@ -283,6 +271,9 @@
 							<span class="rounded-full px-2 py-0.5 text-xs font-bold uppercase tracking-wide {STATUS_BADGE[post.status] ?? STATUS_BADGE.draft}">
 								{post.status}
 							</span>
+							{#each normPlatforms(post.platform) as plt}
+								{@render PlatformBadge({ platform: plt })}
+							{/each}
 							<span class="truncate font-mono text-xs text-slate-400">{post.id}</span>
 						</div>
 						<p class="mb-1 font-semibold text-slate-900 dark:text-white">{post.title}</p>
@@ -337,99 +328,91 @@
 	onconfirm={confirmDelete}
 />
 
-<!-- ── Create modal ──────────────────────────────────────────────────────────── -->
-<Dialog.Root bind:open={showCreate}>
-	<Dialog.Portal>
-		<Dialog.Overlay class="fixed inset-0 z-50 bg-black/40" />
-		<Dialog.Content
-			class="fixed left-1/2 top-1/2 z-50 max-h-[90vh] w-full max-w-lg -translate-x-1/2 -translate-y-1/2 overflow-y-auto rounded-2xl bg-white p-6 shadow-2xl dark:bg-slate-900"
-		>
-			<div class="mb-5 flex items-center justify-between">
-				<Dialog.Title class="text-lg font-bold text-slate-900 dark:text-white">New Draft</Dialog.Title>
-				<Dialog.Close class="text-slate-400 transition-colors hover:text-slate-600">
-					<X class="h-4 w-4" />
-				</Dialog.Close>
-			</div>
+<!-- ── Create drawer ─────────────────────────────────────────────────────────── -->
+<Drawer bind:open={showCreate}>
+	<div class="flex h-full flex-col">
+		<div class="flex shrink-0 items-center justify-between border-b border-slate-200 px-6 py-4 dark:border-slate-800">
+			<h2 class="text-lg font-bold text-slate-900 dark:text-white">New Draft</h2>
+			<button onclick={() => (showCreate = false)} class="rounded-lg p-1.5 text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-600 dark:hover:bg-slate-800">
+				<X class="h-5 w-5" />
+			</button>
+		</div>
+		<div class="flex-1 overflow-y-auto px-6 py-5">
 			<div class="flex flex-col gap-4">
 				<div>
-					<label class={labelCls}>Title</label>
-					<input bind:value={newTitle} type="text" placeholder="Post title" class={inputCls} />
+					<label for="create-title" class={labelCls}>Title</label>
+					<input id="create-title" bind:value={newTitle} type="text" placeholder="Post title" class={inputCls} />
 				</div>
 				<div>
-					<label class={labelCls}>Content</label>
-					<textarea bind:value={newContent} rows="5" placeholder="Post copy…" class="{inputCls} resize-none"></textarea>
+					<label for="create-content" class={labelCls}>Content</label>
+					<textarea id="create-content" bind:value={newContent} rows="5" placeholder="Post copy…" class="{inputCls} resize-none"></textarea>
 				</div>
 				<div>
-					<label class={labelCls}>Hashtags <span class="font-normal normal-case text-slate-400">(space separated)</span></label>
-					<input bind:value={newHashtags} type="text" placeholder="#hashtag1 #hashtag2" class={inputCls} />
+					<label for="create-hashtags" class={labelCls}>Hashtags <span class="font-normal normal-case text-slate-400">(space separated)</span></label>
+					<input id="create-hashtags" bind:value={newHashtags} type="text" placeholder="#hashtag1 #hashtag2" class={inputCls} />
 				</div>
 				<div>
-					<label class={labelCls}>Image <span class="font-normal normal-case text-slate-400">(optional)</span></label>
+					<label for="create-image" class={labelCls}>Image <span class="font-normal normal-case text-slate-400">(optional)</span></label>
 					<input
+						id="create-image"
 						bind:this={newMediaInput}
-						type="file"
-						accept="image/*,video/*"
-						multiple
+						type="file" accept="image/*,video/*" multiple
 						class="w-full cursor-pointer text-sm text-slate-500 file:mr-3 file:rounded-lg file:border-0 file:bg-indigo-50 file:px-3 file:py-1.5 file:text-xs file:font-semibold file:text-indigo-700 hover:file:bg-indigo-100 dark:file:bg-indigo-900/30 dark:file:text-indigo-400"
 					/>
 				</div>
 			</div>
-			<div class="mt-6 flex gap-3">
-				<button
-					onclick={createDraft}
-					disabled={!newTitle.trim() || !newContent.trim() || isCreating}
-					class="flex-1 rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-indigo-700 disabled:opacity-50"
-				>
-					{isCreating ? 'Creating…' : 'Create Draft'}
-				</button>
-				<Dialog.Close class="rounded-lg border border-slate-200 px-4 py-2.5 text-sm font-medium text-slate-600 transition-colors hover:bg-slate-50 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800">
-					Cancel
-				</Dialog.Close>
-			</div>
-		</Dialog.Content>
-	</Dialog.Portal>
-</Dialog.Root>
+		</div>
+		<div class="flex shrink-0 gap-3 border-t border-slate-200 px-6 py-4 dark:border-slate-800">
+			<button
+				onclick={createDraft}
+				disabled={!newTitle.trim() || !newContent.trim() || isCreating}
+				class="flex-1 rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-indigo-700 disabled:opacity-50"
+			>
+				{isCreating ? 'Creating…' : 'Create Draft'}
+			</button>
+			<button
+				onclick={() => (showCreate = false)}
+				class="rounded-lg border border-slate-200 px-4 py-2.5 text-sm font-medium text-slate-600 transition-colors hover:bg-slate-50 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800"
+			>
+				Cancel
+			</button>
+		</div>
+	</div>
+</Drawer>
 
-<!-- ── Edit modal ───────────────────────────────────────────────────────────── -->
-<Dialog.Root
-	open={editingPost !== null}
-	onOpenChange={(v) => { if (!v) editingPost = null; }}
->
-	<Dialog.Portal>
-		<Dialog.Overlay class="fixed inset-0 z-50 bg-black/40" />
-		<Dialog.Content
-			class="fixed left-1/2 top-1/2 z-50 max-h-[90vh] w-full max-w-2xl -translate-x-1/2 -translate-y-1/2 overflow-y-auto rounded-2xl bg-white p-6 shadow-2xl dark:bg-slate-900"
-		>
-			{#if editingPost}
-				<!-- Header -->
-				<div class="mb-5 flex items-start justify-between pr-6">
-					<div>
-						<div class="mb-1 flex flex-wrap items-center gap-2">
-							<span class="rounded-full px-2 py-0.5 text-xs font-bold uppercase tracking-wide {STATUS_BADGE[editingPost.status] ?? STATUS_BADGE.draft}">
-								{editingPost.status}
-							</span>
-							{#if editingPost.media_type}
-								<span class="rounded-full bg-slate-100 px-2 py-0.5 text-xs font-medium uppercase text-slate-500 dark:bg-slate-800">{editingPost.media_type}</span>
-							{/if}
-							{#if (editingPost.workflow as any)?.strategy?.framework}
-								<span class="rounded-full bg-indigo-50 px-2 py-0.5 text-xs font-medium text-indigo-600 dark:bg-indigo-900/20 dark:text-indigo-400">{(editingPost.workflow as any).strategy.framework}</span>
-							{/if}
-						</div>
-						<p class="font-mono text-xs text-slate-400">{editingPost.id}</p>
+<!-- ── Edit drawer ────────────────────────────────────────────────────────────── -->
+<Drawer bind:open={showEdit}>
+	<div class="flex h-full flex-col">
+		{#if editingPost}
+			<div class="flex shrink-0 items-start justify-between border-b border-slate-200 px-6 py-4 dark:border-slate-800">
+				<div class="min-w-0 flex-1 pr-4">
+					<div class="mb-1 flex flex-wrap items-center gap-2">
+						<span class="rounded-full px-2 py-0.5 text-xs font-bold uppercase tracking-wide {STATUS_BADGE[editingPost.status] ?? STATUS_BADGE.draft}">
+							{editingPost.status}
+						</span>
+						{#if editingPost.media_type}
+							<span class="rounded-full bg-slate-100 px-2 py-0.5 text-xs font-medium uppercase text-slate-500 dark:bg-slate-800">{editingPost.media_type}</span>
+						{/if}
+						{#if (editingPost.workflow as any)?.strategy?.framework}
+							<span class="rounded-full bg-indigo-50 px-2 py-0.5 text-xs font-medium text-indigo-600 dark:bg-indigo-900/20 dark:text-indigo-400">{(editingPost.workflow as any).strategy.framework}</span>
+						{/if}
 					</div>
-					<div class="flex shrink-0 items-center gap-2">
-						<button
-							onclick={() => requestDelete(editingPost!)}
-							class="flex items-center gap-1.5 rounded-lg border border-red-200 px-3 py-1.5 text-xs font-medium text-red-600 transition-colors hover:bg-red-50 dark:border-red-800 dark:text-red-400 dark:hover:bg-red-900/20"
-						>
-							<Trash2 class="h-3.5 w-3.5" /> Delete
-						</button>
-						<button onclick={() => (editingPost = null)} class="text-slate-400 transition-colors hover:text-slate-600">
-							<X class="h-4 w-4" />
-						</button>
-					</div>
+					<p class="truncate font-mono text-xs text-slate-400">{editingPost.id}</p>
 				</div>
+				<div class="flex shrink-0 items-center gap-2">
+					<button
+						onclick={() => requestDelete(editingPost!)}
+						class="flex items-center gap-1.5 rounded-lg border border-red-200 px-3 py-1.5 text-xs font-medium text-red-600 transition-colors hover:bg-red-50 dark:border-red-800 dark:text-red-400 dark:hover:bg-red-900/20"
+					>
+						<Trash2 class="h-3.5 w-3.5" /> Delete
+					</button>
+					<button onclick={() => (showEdit = false)} class="rounded-lg p-1.5 text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-600 dark:hover:bg-slate-800">
+						<X class="h-5 w-5" />
+					</button>
+				</div>
+			</div>
 
+			<div class="flex-1 overflow-y-auto px-6 py-5">
 				{#if (editingPost.workflow as any)?.strategy?.reasoning}
 					<div class="mb-5 rounded-lg border border-slate-200 bg-slate-50 px-4 py-3 dark:border-slate-700 dark:bg-slate-800/50">
 						<p class="mb-1 text-xs font-semibold uppercase tracking-wide text-slate-400">Strategy Reasoning</p>
@@ -439,16 +422,16 @@
 
 				<div class="flex flex-col gap-4">
 					<div>
-						<label class={labelCls}>Title</label>
-						<input bind:value={editTitle} type="text" class={inputCls} />
+						<label for="edit-title" class={labelCls}>Title</label>
+						<input id="edit-title" bind:value={editTitle} type="text" class={inputCls} />
 					</div>
 					<div>
-						<label class={labelCls}>Content</label>
-						<textarea bind:value={editContent} rows="8" class="{inputCls} resize-y"></textarea>
+						<label for="edit-content" class={labelCls}>Content</label>
+						<textarea id="edit-content" bind:value={editContent} rows="8" class="{inputCls} resize-y"></textarea>
 					</div>
 					<div>
-						<label class={labelCls}>Hashtags <span class="font-normal normal-case text-slate-400">(space separated)</span></label>
-						<input bind:value={editHashtags} type="text" class={inputCls} />
+						<label for="edit-hashtags" class={labelCls}>Hashtags <span class="font-normal normal-case text-slate-400">(space separated)</span></label>
+						<input id="edit-hashtags" bind:value={editHashtags} type="text" class={inputCls} />
 						{#if editHashtags}
 							<p class="mt-1.5 flex flex-wrap gap-1 text-xs text-indigo-500 dark:text-indigo-400">
 								{#each editHashtags.split(/\s+/).filter(Boolean) as tag}<span>{tag}</span>{/each}
@@ -456,14 +439,14 @@
 						{/if}
 					</div>
 					<div>
-						<label class={labelCls}>Platform</label>
-						<MultiSelect bind:value={editPlatforms} options={PLATFORMS} placeholder="Select platforms…" />
+						<p class={labelCls}>Platform</p>
+						<PlatformSelect bind:value={editPlatforms} />
 					</div>
 
 					<!-- Media -->
 					<div>
 						<div class="mb-1.5 flex items-center justify-between">
-							<label class={labelCls}>Image</label>
+							<p class={labelCls}>Image</p>
 							{#if editMediaFiles.length > 0}
 								<button onclick={removeMedia} class="flex items-center gap-1 text-xs text-red-500 transition-colors hover:text-red-700">
 									<Trash2 class="h-3 w-3" /> Remove all
@@ -475,7 +458,7 @@
 								{#each editMediaFiles as f}
 									<div class="flex aspect-video items-center justify-center overflow-hidden rounded-lg border border-slate-200 bg-slate-900 dark:border-slate-700">
 										{#if f.match(/\.(mp4|webm)$/i)}
-											<video src="/api/media/{data.tenant}/{f}" controls class="max-h-full max-w-full object-contain"></video>
+											<video src="/api/media/{data.tenant}/{f}" controls class="max-h-full max-w-full object-contain"><track kind="captions" /></video>
 										{:else}
 											<img src="/api/media/{data.tenant}/{f}" alt="Media" class="max-h-full max-w-full object-contain" />
 										{/if}
@@ -484,15 +467,12 @@
 							</div>
 						{:else}
 							<div class="mb-3 flex aspect-video items-center justify-center rounded-lg border-2 border-dashed border-slate-200 bg-slate-50 text-xs font-medium text-slate-400 dark:border-slate-700 dark:bg-slate-800/50">
-								No image attached
+								<ImagePlus class="mr-2 h-4 w-4" /> No image attached
 							</div>
 						{/if}
 						<input
-							type="file"
-							accept="image/*,video/*"
-							multiple
-							onchange={handleMediaUpload}
-							disabled={isUploadingMedia}
+							type="file" accept="image/*,video/*" multiple
+							onchange={handleMediaUpload} disabled={isUploadingMedia}
 							class="w-full cursor-pointer text-sm text-slate-500 file:mr-3 file:rounded-lg file:border-0 file:bg-indigo-50 file:px-3 file:py-1.5 file:text-xs file:font-semibold file:text-indigo-700 hover:file:bg-indigo-100 disabled:opacity-50 dark:file:bg-indigo-900/30 dark:file:text-indigo-400"
 						/>
 						{#if isUploadingMedia}
@@ -500,80 +480,95 @@
 						{/if}
 					</div>
 				</div>
+			</div>
 
-				<div class="mt-6 flex gap-3">
-					<button
-						onclick={saveEdit}
-						disabled={!editTitle.trim() || !editContent.trim() || isSavingEdit}
-						class="flex-1 rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-indigo-700 disabled:opacity-50"
-					>
-						{isSavingEdit ? 'Saving…' : 'Save Changes'}
-					</button>
-					<button
-						onclick={() => (editingPost = null)}
-						class="rounded-lg border border-slate-200 px-4 py-2.5 text-sm font-medium text-slate-600 transition-colors hover:bg-slate-50 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800"
-					>
-						Cancel
-					</button>
-				</div>
-			{/if}
-		</Dialog.Content>
-	</Dialog.Portal>
-</Dialog.Root>
+			<div class="flex shrink-0 gap-3 border-t border-slate-200 px-6 py-4 dark:border-slate-800">
+				<button
+					onclick={saveEdit}
+					disabled={!editTitle.trim() || !editContent.trim() || isSavingEdit}
+					class="flex-1 rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-indigo-700 disabled:opacity-50"
+				>
+					{isSavingEdit ? 'Saving…' : 'Save Changes'}
+				</button>
+				<button
+					onclick={() => (showEdit = false)}
+					class="rounded-lg border border-slate-200 px-4 py-2.5 text-sm font-medium text-slate-600 transition-colors hover:bg-slate-50 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800"
+				>
+					Cancel
+				</button>
+			</div>
+		{/if}
+	</div>
+</Drawer>
 
-<!-- ── Schedule modal ───────────────────────────────────────────────────────── -->
-<Dialog.Root
-	open={schedulingPost !== null}
-	onOpenChange={(v) => { if (!v) schedulingPost = null; }}
->
-	<Dialog.Portal>
-		<Dialog.Overlay class="fixed inset-0 z-50 bg-black/40" />
-		<Dialog.Content
-			class="fixed left-1/2 top-1/2 z-50 w-full max-w-md -translate-x-1/2 -translate-y-1/2 rounded-2xl bg-white p-6 shadow-2xl dark:bg-slate-900"
-		>
-			{#if schedulingPost}
-				<div class="mb-5 flex items-center justify-between">
-					<div>
-						<Dialog.Title class="text-lg font-bold text-slate-900 dark:text-white">Schedule Post</Dialog.Title>
-						<p class="truncate text-sm text-slate-500">{schedulingPost.title}</p>
-					</div>
-					<button onclick={() => (schedulingPost = null)} class="text-slate-400 transition-colors hover:text-slate-600">
-						<X class="h-4 w-4" />
-					</button>
+<!-- ── Schedule drawer ────────────────────────────────────────────────────────── -->
+<Drawer bind:open={showSchedule}>
+	<div class="flex h-full flex-col">
+		{#if schedulingPost}
+			<div class="flex shrink-0 items-center justify-between border-b border-slate-200 px-6 py-4 dark:border-slate-800">
+				<div class="min-w-0 flex-1 pr-4">
+					<h2 class="text-lg font-bold text-slate-900 dark:text-white">Schedule Post</h2>
+					<p class="truncate text-sm text-slate-500">{schedulingPost.title}</p>
 				</div>
+				<button onclick={() => (showSchedule = false)} class="rounded-lg p-1.5 text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-600 dark:hover:bg-slate-800">
+					<X class="h-5 w-5" />
+				</button>
+			</div>
+			<div class="flex-1 overflow-y-auto px-6 py-5">
 				<div class="flex flex-col gap-4">
 					<div>
-						<label class={labelCls}>Platform</label>
-						<MultiSelect bind:value={schedPlatforms} options={PLATFORMS} placeholder="Select platforms…" />
+						<p class={labelCls}>Platform</p>
+						<PlatformSelect bind:value={schedPlatforms} />
 					</div>
 					<div class="grid grid-cols-2 gap-3">
 						<div>
-							<label class={labelCls}>Date</label>
-							<input type="date" bind:value={schedDate} min={new Date().toISOString().slice(0, 10)} class={inputCls} />
+							<label for="sched-date" class={labelCls}>Date</label>
+							<input id="sched-date" type="date" bind:value={schedDate} min={new Date().toISOString().slice(0, 10)} class={inputCls} />
 						</div>
 						<div>
-							<label class={labelCls}>Time <span class="font-normal normal-case text-slate-400">(opt.)</span></label>
-							<input type="time" bind:value={schedTime} class={inputCls} />
+							<label for="sched-time" class={labelCls}>Time <span class="font-normal normal-case text-slate-400">(opt.)</span></label>
+							<input id="sched-time" type="time" bind:value={schedTime} class={inputCls} />
 						</div>
 					</div>
 				</div>
-				<div class="mt-6 flex gap-3">
-					<button
-						onclick={saveSchedule}
-						disabled={!schedDate || isSavingSched}
-						class="flex flex-1 items-center justify-center gap-2 rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-indigo-700 disabled:opacity-50"
-					>
-						<Clock class="h-4 w-4" />
-						{isSavingSched ? 'Saving…' : 'Add to Planner'}
-					</button>
-					<button
-						onclick={() => (schedulingPost = null)}
-						class="rounded-lg border border-slate-200 px-4 py-2.5 text-sm font-medium text-slate-600 transition-colors hover:bg-slate-50 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800"
-					>
-						Cancel
-					</button>
-				</div>
-			{/if}
-		</Dialog.Content>
-	</Dialog.Portal>
-</Dialog.Root>
+			</div>
+			<div class="flex shrink-0 gap-3 border-t border-slate-200 px-6 py-4 dark:border-slate-800">
+				<button
+					onclick={saveSchedule}
+					disabled={!schedDate || isSavingSched}
+					class="flex flex-1 items-center justify-center gap-2 rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-indigo-700 disabled:opacity-50"
+				>
+					<Clock class="h-4 w-4" />
+					{isSavingSched ? 'Saving…' : 'Add to Planner'}
+				</button>
+				<button
+					onclick={() => (showSchedule = false)}
+					class="rounded-lg border border-slate-200 px-4 py-2.5 text-sm font-medium text-slate-600 transition-colors hover:bg-slate-50 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800"
+				>
+					Cancel
+				</button>
+			</div>
+		{/if}
+	</div>
+</Drawer>
+
+<!-- Platform badge snippet used in the list -->
+{#snippet PlatformBadge(props: { platform: PostPlatform })}
+	{@const plt = props.platform}
+	{@const cfg = PLATFORM[plt]}
+	<span class="flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium text-slate-600 dark:text-slate-400">
+		{#if plt === 'linkedin'}
+			<svg width="11" height="11" viewBox="0 0 24 24" fill="#0A66C2" aria-hidden="true">
+				<path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 0 1-2.063-2.065 2.064 2.064 0 1 1 2.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/>
+			</svg>
+		{:else if plt === 'facebook'}
+			<SiFacebook size={11} color="#1877F2" />
+		{:else}
+			<SiInstagram
+				size={11}
+				color={plt === 'instagram_feed' ? '#E1306C' : plt === 'instagram_stories' ? '#C13584' : '#FF0000'}
+			/>
+		{/if}
+		{cfg?.label ?? plt}
+	</span>
+{/snippet}

@@ -9,6 +9,7 @@ export const load: PageServerLoad = async ({ params }) => {
 			client_id: p.tenant_id,
 			filename: p.id + '.json',
 			media_files: p.media_path ? [p.media_path] : [],
+			platform: p.platform,
 		}));
 
 	return { tenant: params.tenant, drafts };

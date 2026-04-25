@@ -14,7 +14,7 @@ export interface Post {
 	media_type: string;
 	scheduled_date?: string;
 	scheduled_time?: string;
-	platform?: PostPlatform;
+	platform: PostPlatform[];
 }
 
 export interface PostWithMeta extends Post {

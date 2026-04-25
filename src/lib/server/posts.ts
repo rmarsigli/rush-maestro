@@ -17,6 +17,7 @@ export interface Post {
 	title: string | null;
 	content: string;
 	hashtags: string[];
+	platform: string[];
 	media_type: MediaType | null;
 	workflow: PostWorkflow | null;
 	media_path: string | null;
@@ -34,6 +35,7 @@ interface PostRow {
 	title: string | null;
 	content: string;
 	hashtags: string | null;
+	platform: string | null;
 	media_type: string | null;
 	workflow: string | null;
 	media_path: string | null;
@@ -50,6 +52,7 @@ function fromRow(row: PostRow): Post {
 		status: row.status as PostStatus,
 		media_type: row.media_type as MediaType | null,
 		hashtags: row.hashtags ? (JSON.parse(row.hashtags) as string[]) : [],
+		platform: row.platform ? (JSON.parse(row.platform) as string[]) : [],
 		workflow: row.workflow ? (JSON.parse(row.workflow) as PostWorkflow) : null,
 	};
 }
@@ -76,8 +79,8 @@ export function getPost(id: string): Post | null {
 export function createPost(data: Omit<Post, 'created_at' | 'updated_at'>): void {
 	getDb()
 		.prepare(
-			`INSERT INTO posts (id, tenant_id, status, title, content, hashtags, media_type, workflow, media_path, scheduled_date, scheduled_time, published_at)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+			`INSERT INTO posts (id, tenant_id, status, title, content, hashtags, platform, media_type, workflow, media_path, scheduled_date, scheduled_time, published_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
 		)
 		.run(
 			data.id,
@@ -86,6 +89,7 @@ export function createPost(data: Omit<Post, 'created_at' | 'updated_at'>): void 
 			data.title ?? null,
 			data.content,
 			data.hashtags.length ? JSON.stringify(data.hashtags) : null,
+			data.platform?.length ? JSON.stringify(data.platform) : null,
 			data.media_type ?? null,
 			data.workflow ? JSON.stringify(data.workflow) : null,
 			data.media_path ?? null,
@@ -106,6 +110,7 @@ export function updatePost(
 	if (data.title !== undefined) { fields.push('title = ?'); values.push(data.title); }
 	if (data.content !== undefined) { fields.push('content = ?'); values.push(data.content); }
 	if (data.hashtags !== undefined) { fields.push('hashtags = ?'); values.push(JSON.stringify(data.hashtags)); }
+	if (data.platform !== undefined) { fields.push('platform = ?'); values.push(data.platform.length ? JSON.stringify(data.platform) : null); }
 	if (data.media_type !== undefined) { fields.push('media_type = ?'); values.push(data.media_type); }
 	if (data.workflow !== undefined) { fields.push('workflow = ?'); values.push(data.workflow ? JSON.stringify(data.workflow) : null); }
 	if (data.media_path !== undefined) { fields.push('media_path = ?'); values.push(data.media_path); }

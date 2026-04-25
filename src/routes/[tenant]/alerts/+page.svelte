@@ -1,11 +1,13 @@
 <script lang="ts">
+	import { untrack } from 'svelte';
 	import { Bell, CheckCircle, EyeOff, AlertTriangle, AlertOctagon, Clock, Inbox } from 'lucide-svelte';
 	import type { PageData } from './$types';
 	import type { AlertEventRow } from '$db/alerts';
 
 	let { data } = $props<{ data: PageData }>();
 
-	let openAlerts = $state<AlertEventRow[]>(data.alerts);
+	let openAlerts = $state<AlertEventRow[]>(untrack(() => data.alerts));
+	$effect(() => { openAlerts = data.alerts; });
 	let busy = $state(new Set<number>());
 
 	let criticals = $derived(openAlerts.filter(a => a.level === 'CRITICAL'));

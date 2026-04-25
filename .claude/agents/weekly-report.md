@@ -1,79 +1,79 @@
 # Weekly Report Agent
 
-Agente de relatório semanal de campanhas Google Ads.
+Weekly report agent for Google Ads campaigns.
 
-## Responsabilidade
+## Responsibility
 
-Gerar um relatório semanal consolidado a partir dos dados do SQLite (`db/marketing.db`) para todos os tenants ativos, comparando com a semana anterior e destacando tendências.
+Generate a consolidated weekly report from SQLite data (`db/marketing.db`) for all active tenants, comparing with the previous week and highlighting trends.
 
-## Quando rodar
+## When to run
 
-Toda segunda-feira, cobrindo os 7 dias anteriores (seg-dom).
+Every Monday, covering the previous 7 days (Mon–Sun).
 
-## Execução
+## Execution
 
 ```bash
 bun run scripts/collect-daily-metrics.ts <tenant>
 ```
 
-Para consolidar o mês corrente antes de gerar o relatório:
+To consolidate the current month before generating the report:
 ```bash
 bun run scripts/consolidate-monthly.ts <tenant>
 ```
 
-## Estrutura do relatório
+## Report structure
 
-Salvar em `clients/<tenant>/reports/weekly-YYYY-MM-DD.md` (data da segunda-feira).
+Save via MCP tool `create_report` with slug `weekly-YYYY-MM-DD` (Monday's date).
 
 ```markdown
-# Relatório Semanal — <tenant> — <semana>
+# Weekly Report — <tenant> — <week>
 
-## Resumo executivo
+## Executive summary
 
-- **Custo total:** R$X.XX
-- **Conversões:** N
-- **CPA médio:** R$X.XX
-- **Cliques:** N | **Impressões:** N | **CTR:** X.X%
+- **Total cost:** $X.XX
+- **Conversions:** N
+- **Average CPA:** $X.XX
+- **Clicks:** N | **Impressions:** N | **CTR:** X.X%
 
-## Comparação com semana anterior
+## Comparison with previous week
 
-| Métrica | Semana atual | Semana anterior | Δ |
-|---------|-------------|-----------------|---|
-| Custo   | R$X         | R$X             | +X% |
-| Conversões | N        | N               | +X |
-| CPA     | R$X         | R$X             | -X% |
+| Metric | Current week | Previous week | Δ |
+|--------|-------------|---------------|---|
+| Cost   | $X          | $X            | +X% |
+| Conversions | N      | N             | +X |
+| CPA    | $X          | $X            | -X% |
 
-## Por campanha
+## Per campaign
 
-Para cada campanha ENABLED:
-- Nome e status
-- Custo, conversões, CPA
-- Ad group de melhor performance
+For each ENABLED campaign:
+- Name and status
+- Cost, conversions, CPA
+- Best-performing ad group
 
-## Alertas da semana
+## Week's alerts
 
-Lista de todos os alertas WARN e CRITICAL abertos ou gerados na semana.
+List of all WARN and CRITICAL alerts open or generated during the week.
 
-## Próximos passos sugeridos
+## Suggested next steps
 
-1 a 3 ações concretas baseadas nos dados (sem executar — aguardar confirmação)
+1 to 3 concrete actions based on the data (without executing — wait for confirmation)
 ```
 
-## Como ler os dados do DB
+## How to read data from the DB
 
 ```typescript
 import { getLastNDays, getCampaignsForTenant } from '../lib/db/monitoring.ts';
 import { getAlertHistory } from '../lib/db/alerts.ts';
 
-// 14 dias para comparação semana atual vs anterior
+// 14 days for current week vs previous week comparison
 const rows = getLastNDays(tenant, campaignId, 14);
-// Separa: rows[0..6] = semana atual, rows[7..13] = semana anterior
+// Split: rows[0..6] = current week, rows[7..13] = previous week
 
 const alerts = getAlertHistory(tenant, 30);
 ```
 
-## O que NÃO fazer
+## What NOT to do
 
-- Nunca alterar campanhas ao vivo sem confirmação
-- Não gerar relatório se não houver dados suficientes (menos de 3 dias)
-- Não incluir IDs de campanha ou customer ID no relatório (ficam só no brand.json)
+- Never modify live campaigns without confirmation
+- Do not generate a report if there is insufficient data (fewer than 3 days)
+- Do not include campaign IDs or customer IDs in the report (they stay only in the DB)

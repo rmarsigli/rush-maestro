@@ -17,8 +17,8 @@
 	let { data } = $props<{ data: PageData }>();
 
 	let exporting       = $state(false);
-	let chartCanvas:    HTMLCanvasElement;
-	let historyCanvas:  HTMLCanvasElement;
+	let chartCanvas    = $state<HTMLCanvasElement | undefined>(undefined);
+	let historyCanvas  = $state<HTMLCanvasElement | undefined>(undefined);
 	let chartInstance:  Chart | null = null;
 	let historyChart:   Chart | null = null;
 

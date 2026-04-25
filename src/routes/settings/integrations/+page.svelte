@@ -354,9 +354,9 @@
 
 				<!-- Clients MultiSelect (shared across providers) -->
 				<div>
-					<label class="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-slate-500">
+					<p class="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-slate-500">
 						Clients using this integration
-					</label>
+					</p>
 					<MultiSelect
 						bind:value={formSelectedClients}
 						options={data.clientOptions}

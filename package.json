@@ -48,6 +48,7 @@
 		"vitest-browser-svelte": "^2.1.0"
 	},
 	"dependencies": {
+		"@icons-pack/svelte-simple-icons": "^7.2.0",
 		"@modelcontextprotocol/sdk": "^1.29.0",
 		"chart.js": "^4.5.1",
 		"clsx": "^2.1.1",
