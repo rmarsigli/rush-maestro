@@ -27,7 +27,7 @@
 			auth.setToken(data.access_token)
 			setToken(data.access_token)
 			if (data.user) auth.setUser(data.user)
-			goto('/')
+			goto(data.needs_tenant ? '/tenants/new' : '/')
 		} catch {
 			error = 'Network error'
 		} finally {

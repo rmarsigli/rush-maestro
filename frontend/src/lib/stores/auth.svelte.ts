@@ -1,4 +1,4 @@
-import { setToken, clearToken, tryRefresh } from '$lib/api/client'
+import { setToken, clearToken, tryRefresh, getToken } from '$lib/api/client'
 
 export interface AuthUser {
 	id: string
@@ -34,6 +34,7 @@ export const auth = {
 	async restoreSession(): Promise<boolean> {
 		const ok = await tryRefresh()
 		if (!ok) return false
+		_token = getToken()
 		try {
 			const res = await fetch('/auth/me', {
 				credentials: 'include',
@@ -41,7 +42,7 @@ export const auth = {
 			})
 			if (!res.ok) return false
 			const data = await res.json()
-			_user = data.data ?? data
+			_user = data.user ?? data.data ?? data
 			return true
 		} catch {
 			return false
