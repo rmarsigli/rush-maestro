@@ -93,8 +93,20 @@ func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 		InternalError(w)
 		return
 	}
+
 	if len(tenants) == 0 {
-		Error(w, http.StatusForbidden, "no_tenant_assigned")
+		pair, err := h.issueBootstrapToken(user)
+		if err != nil {
+			InternalError(w)
+			return
+		}
+		h.setRefreshCookie(w, pair.RefreshToken)
+		JSON(w, http.StatusOK, map[string]any{
+			"access_token": pair.AccessToken,
+			"expires_at":   pair.ExpiresAt,
+			"needs_tenant": true,
+			"user":         toUserResponse(user),
+		})
 		return
 	}
 
@@ -138,6 +150,30 @@ func (h *AuthHandler) Refresh(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		h.clearRefreshCookie(w)
 		Error(w, http.StatusUnauthorized, "unauthorized")
+		return
+	}
+
+	// Bootstrap token: re-check if the user now has tenants assigned.
+	if tenantID == "" {
+		tenants, _ := h.rbacRepo.GetTenantsForUser(r.Context(), user.ID)
+		if len(tenants) > 0 {
+			tenantID = tenants[0]
+		}
+	}
+
+	if tenantID == "" {
+		pair, err := h.issueBootstrapToken(user)
+		if err != nil {
+			InternalError(w)
+			return
+		}
+		h.setRefreshCookie(w, pair.RefreshToken)
+		JSON(w, http.StatusOK, map[string]any{
+			"access_token": pair.AccessToken,
+			"expires_at":   pair.ExpiresAt,
+			"needs_tenant": true,
+			"user":         toUserResponse(user),
+		})
 		return
 	}
 
@@ -279,6 +315,15 @@ func (h *AuthHandler) ChangePassword(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.WriteHeader(http.StatusNoContent)
+}
+
+func (h *AuthHandler) issueBootstrapToken(user *domain.User) (domain.TokenPair, error) {
+	pair, err := h.jwtSvc.IssueTokenPair(domain.UserClaims{
+		UserID:      user.ID,
+		TenantID:    "",
+		Permissions: []string{"create:tenant", "view-any:tenant"},
+	})
+	return pair, err
 }
 
 func (h *AuthHandler) issueTokens(ctx context.Context, user *domain.User, tenantID string) (domain.TokenPair, *domain.UserClaims, error) {

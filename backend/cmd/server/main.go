@@ -68,7 +68,7 @@ func main() {
 
 	r.Get("/health", api.NewHealthHandler(userRepo).Handle)
 
-	r.Post("/setup", api.NewSetupHandler(userRepo).Create)
+	r.Post("/setup", api.NewSetupHandler(userRepo, tenantRepo, rbacRepo, jwtSvc, cfg.CookieDomain, cfg.IsProduction()).Create)
 
 	authHandler := api.NewAuthHandler(
 		userRepo, rbacRepo, jwtSvc,
