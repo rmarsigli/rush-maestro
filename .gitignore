@@ -1,42 +1,10 @@
-# Dependencies
-node_modules/
-
-# Environment variables — never commit real credentials
-.env
-.env.*
-!.env.example
-
-# Build outputs
-.svelte-kit/
-frontend/.svelte-kit/
-frontend/dist/
-frontend/build/
-
-# Client data — contains sensitive business information and media files (local-only)
-/clients/
-
-# Storage — local image files
+# Project runtime/local data
 /storage/images/
-
-# Database — contains operational data, never commit
-/db/*.db
-/db/*.db-shm
-/db/*.db-wal
-
-# Claude Code runtime files
-.claude/scheduled_tasks.lock
-.claude/settings.local.json
-.claude/skills/
-
-# Dev logs
 dev_log.txt
 
-# npm lockfile (project uses bun.lock)
-package-lock.json
-
-# Debug and test artifacts
-err*.html
-test-*.ts
+# Claude Code runtime files (local machine state)
+.claude/scheduled_tasks.lock
+.claude/settings.local.json
 
 # Git worktrees
 .worktrees/
@@ -49,10 +17,3 @@ test-*.ts
 # OS
 .DS_Store
 Thumbs.db
-
-# Backend
-backend/.env
-backend/*.db
-backend/tmp/
-backend/bin/
-frontend/.svelte-kit/

@@ -1,0 +1,11 @@
+.env
+.env.*
+!.env.example
+
+# Local databases/artifacts
+tmp/
+bin/
+
+# Go test/build artifacts
+coverage.out
+*.test
