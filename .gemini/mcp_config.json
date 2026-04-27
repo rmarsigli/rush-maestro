@@ -1,0 +1,10 @@
+{
+    "mcpServers": {
+        "aipim": {
+            "serverUrl": "http://localhost:3141/mcp"
+        },
+        "rush-maestro": {
+            "serverUrl": "http://localhost:5173/mcp"
+        }
+    }
+}

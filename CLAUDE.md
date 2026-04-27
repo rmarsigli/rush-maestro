@@ -1,4 +1,4 @@
-# Rush Maestro - Project Management System
+# Rush Maestro
 
 > AI-assisted development with context persistence. Full docs: `.project/docs/`
 
@@ -9,12 +9,12 @@
 - **Backend:** Go (chi router, pgx/v5, goose migrations) - `backend/`
 - **Frontend:** SvelteKit (Svelte 5 runes) + Tailwind v4 + `adapter-static` - `frontend/`
 - **Database:** PostgreSQL via pgx at `rush_maestro`. PostgreSQL is the source of truth for all content.
-- **MCP:** `@modelcontextprotocol/sdk` - Streamable HTTP at `POST /mcp` (Bun, temporary until T16)
+- **MCP:** Streamable HTTP. Exposes two services, **AIPIM** (Project Manager at `http://localhost:3141/mcp`) and **Rush Maestro** (the Plataform at `http://localhost:5173/mcp`).
 - **Credentials:** Google Ads OAuth and other connections are stored in the `integrations` table (not `.env`). Client IDs, campaign IDs and tracking tags **never** go in committed files.
 
-## Agent Communication - MCP Only
+## Agent Communication via MCP
 
-All agents interact with this system exclusively through MCP tools. There are no agent `.md` files, no flat-file workflows, no direct script invocations from agents. The MCP server at `http://localhost:5173/mcp` is the only interface.
+All agents can interact with this system exclusively through MCP tools. There are no agent `.md` files, no flat-file workflows, no direct script invocations from agents. The MCP servers at `http://localhost:3141/mcp` (AIPIM for memory manager and project management) and `http://localhost:5173/mcp` (Rush Maestro, the project per se) are the only interfaces.
 
 ## General Conventions
 
@@ -36,9 +36,9 @@ frontend/                # SvelteKit app
 .project/
   ├── current-task.md    # Active work
   ├── context.md         # Session state persistence
-  ├── backlog/           # Tasks: T{XXX}-{name}.md
-  ├── completed/         # Archive: {YYYY-MM-DD}-T{XXX}-{name}.md
-  ├── decisions/         # ADRs: {YYYY-MM-DD}-ADR{XXX}-{name}.md
+  ├── backlog/           # Managed entirely via AIPIM MCP tools (`get_task`, `list_tasks`)
+  ├── completed/         # Archive (Managed via `complete_task`)
+  ├── decisions/         # ADRs (Managed via `log_decision`)
   └── README.md          # Project overview
 ```
 
@@ -52,9 +52,10 @@ frontend/                # SvelteKit app
 
 **Task Execution:**
 
-1. Work directly on files. Implement requested changes.
-2. Run tests/linters if configured.
-3. Call `add_comment` to document progress or blockers.
+1. Fetch task details using the `get_task` MCP tool (AIPIM) by passing the task ID. **DO NOT** attempt to read task files manually from `.project/backlog/`.
+2. Work directly on the project files. Implement requested changes.
+3. Run tests/linters if configured.
+4. Call `add_comment` (via MCP) to document progress or blockers.
 
 **End:**
 
