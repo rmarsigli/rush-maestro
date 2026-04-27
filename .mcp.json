@@ -1,8 +1,12 @@
 {
   "mcpServers": {
-    "marketing": {
+    "rush-maestro-mcp": {
       "type": "http",
-      "url": "http://localhost:8181/mcp"
+      "url": "http://localhost:5173/mcp"
+    },
+    "aipim": {
+      "type": "http",
+      "url": "http://localhost:3141"
     }
   }
 }
