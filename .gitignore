@@ -7,6 +7,7 @@ node_modules/
 !.env.example
 
 # Build outputs
+.svelte-kit/
 frontend/.svelte-kit/
 frontend/dist/
 frontend/build/
@@ -24,6 +25,7 @@ frontend/build/
 
 # Claude Code runtime files
 .claude/scheduled_tasks.lock
+.claude/settings.local.json
 
 # Dev logs
 dev_log.txt
