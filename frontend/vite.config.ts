@@ -14,14 +14,10 @@ export default defineConfig({
 	resolve: {
 		alias: {
 			'@': path.resolve('./src'),
-			'$db': path.resolve('./src/lib/server/db'),
 		}
 	},
 	optimizeDeps: {
-		include: ['google-ads-api', 'marked'],
-	},
-	ssr: {
-		external: ['bun:sqlite'],
+		include: ['marked'],
 	},
 	test: {
 		expect: { requireAssertions: true },
@@ -36,7 +32,7 @@ export default defineConfig({
 						instances: [{ browser: 'chromium', headless: true }]
 					},
 					include: ['src/**/*.svelte.{test,spec}.{js,ts}'],
-					exclude: ['src/lib/server/**']
+					exclude: []
 				}
 			},
 			{

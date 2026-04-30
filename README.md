@@ -4,35 +4,27 @@ Local marketing management system with multi-tenant support. Combines a CMS, Goo
 
 ## Stack
 
-- **Runtime:** Bun
-- **UI:** SvelteKit (Svelte 5 runes) + Tailwind v4
-- **Database:** SQLite at `db/marketing.db` via `bun:sqlite`
-- **MCP:** `@modelcontextprotocol/sdk` — Streamable HTTP at `POST /mcp`
-- **Google Ads:** `google-ads-api` v23
+- **Backend:** Go (chi router, pgx/v5, goose migrations) — `backend/`
+- **UI:** SvelteKit (Svelte 5 runes) + Tailwind v4 + `adapter-static` — `frontend/`
+- **Database:** PostgreSQL at `rush_maestro` via pgx
+- **MCP:** Go Streamable HTTP at `POST /mcp`
+- **Google Ads:** Go connector via `google.golang.org/api/ads`
 - **Credentials:** Google Ads OAuth stored in the `integrations` table
 
 ## Architecture
 
-SQLite is the single source of truth. The MCP server is the single interface for all AI agents — no flat-file workflows, no agent `.md` personas. The same 29 MCP tools serve both CLI agents today and a future UI with LLM API connectors.
+PostgreSQL is the single source of truth. The MCP server is the single interface for all AI agents — no flat-file workflows, no agent `.md` personas.
 
 ```
-SvelteKit UI
-  └── src/routes/[tenant]/*      — pages + server loaders
-  └── src/routes/mcp/+server.ts  — MCP endpoint (POST/GET/DELETE)
-  └── src/routes/api/*           — internal REST
+Go Backend (port 8181)
+  └── /admin/*        — REST API (tenants, posts, campaigns, reports)
+  └── /auth/*         — OAuth flows
+  └── /mcp            — MCP endpoint (Streamable HTTP)
+  └── internal/connector/googleads/  — live Google Ads API
 
-src/lib/server/
-  tenants · posts · reports · campaigns   — SQLite CRUD
-  googleAds · googleAdsDetailed           — live Google Ads API
-  googleAdsClient.ts                      — shared customer factory
-  mcp/server.ts                           — createServer() factory
-  mcp/tools/content · ads · monitoring    — 29 MCP tools
-  mcp/resources/tenants                   — tenant:// resources
-  db/monitoring · alerts · agent-runs     — telemetry
-
-scripts/        — cron wrappers and deployment utilities (system-level only)
-storage/images/ — post media (served at /api/media/[tenant]/[filename])
-.mcp.json       — MCP config (auto-detected by Claude Code and Gemini CLI)
+SvelteKit SPA (port 5173, dev)
+  └── src/routes/[tenant]/*      — pages (static adapter, pure client-side)
+  └── src/lib/api/               — Go REST API client
 ```
 
 ## Features
@@ -43,7 +35,7 @@ storage/images/ — post media (served at /api/media/[tenant]/[filename])
 
 **Monitoring** — daily metrics collection, threshold alerts (CPA, conversions, impression share, budget pacing), WARN/CRITICAL inbox with resolve/ignore
 
-**Reports** — markdown reports in SQLite, auto-typed by slug (audit, search, weekly, monthly), browser print-to-PDF
+**Reports** — markdown reports in PostgreSQL, auto-typed by slug (audit, search, weekly, monthly), browser print-to-PDF
 
 **MCP** — 29 tools + 5 resources over Streamable HTTP at `http://localhost:5173/mcp`
 
@@ -61,24 +53,23 @@ See [`docs/mcp.md`](docs/mcp.md) for full reference.
 
 ## Quick Start
 
+### Backend
+
 ```bash
+cd backend
+cp .env.example .env      # configure DATABASE_URL, GOOGLE_ADS_* if needed
+go run ./cmd/server
+```
+
+### Frontend
+
+```bash
+cd frontend
 bun install
-bun dev          # starts UI + MCP server at http://localhost:5173
+bun run dev                # proxied to Go API at localhost:8181
 ```
 
 Google Ads credentials are configured via **Settings → Integrations** in the UI (OAuth flow). No manual `.env` needed for Google Ads.
-
-## Scripts
-
-System-level only — for cron jobs, deployment, and diagnostics. Agents use MCP tools instead.
-
-```bash
-bun run scripts/collect-daily-metrics.ts <tenant> [YYYY-MM-DD]
-bun run scripts/consolidate-monthly.ts <tenant> [YYYY-MM]
-bun run scripts/deploy-google-ads.ts <campaign.json> <tenant_id>
-bun run scripts/publish-social-post.ts <tenant_id> <post_id>
-bun run scripts/test-ads-connection.ts <customer-id>
-```
 
 ## Environment Variables
 
@@ -89,13 +80,13 @@ META_PAGE_ACCESS_TOKEN=
 META_PAGE_ID=
 META_INSTAGRAM_ACCOUNT_ID=
 MEDIA_PUBLIC_BASE_URL=     # tunnel URL for Meta media uploads
-FINAL_URL=                 # landing page for Google Ads deploy script
+FINAL_URL=                 # landing page for Google Ads deploy
 ```
 
 ## Crontab
 
 ```
-3 7 * * * cd /path/to/rush-maestro && bun run scripts/collect-daily-metrics.ts <tenant> >> /tmp/ads.log 2>&1
+3 7 * * * cd /path/to/rush-maestro/backend && go run ./cmd/scripts collect-daily-metrics <tenant> >> /tmp/ads.log 2>&1
 ```
 
 ---

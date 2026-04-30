@@ -15,8 +15,6 @@ const config = {
 		}),
 		alias: {
 			'@': path.resolve('./src'),
-			'$db': path.resolve('./src/lib/server/db'),
-			'$db/*': path.resolve('./src/lib/server/db') + '/*',
 		}
 	}
 };

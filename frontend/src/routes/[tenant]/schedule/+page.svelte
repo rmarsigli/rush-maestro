@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { CalendarClock, CheckCircle2, XCircle, Clock, Terminal, RefreshCw } from 'lucide-svelte';
 	import type { PageData } from './$types';
-	import type { AgentRunRow } from '$db/agent-runs';
+	import type { AgentRun } from '$lib/api/schedule';
 
 	let { data } = $props<{ data: PageData }>();
 
@@ -47,12 +47,12 @@
 		return total % 1 === 0 ? String(total) : total.toFixed(1);
 	}
 
-	const lastRun = $derived(data.lastRun as AgentRunRow | null);
+	const lastRun = $derived(data.lastRun as AgentRun | null);
 	const isHealthy = $derived(lastRun?.status === 'success');
 
 	// Hours since last run (for staleness warning)
 	const hoursSince = $derived(lastRun
-		? (Date.now() - new Date(lastRun.created_at).getTime()) / 3_600_000
+		? (Date.now() - new Date(lastRun.started_at).getTime()) / 3_600_000
 		: Infinity);
 	const isStale = $derived(hoursSince > 26);
 </script>
@@ -93,7 +93,7 @@
 						<p class="font-semibold {isStale ? 'text-amber-800 dark:text-amber-200' : isHealthy ? 'text-emerald-800 dark:text-emerald-200' : 'text-red-800 dark:text-red-200'}">
 							{isStale ? 'Monitoring may be stale' : isHealthy ? 'Last run successful' : 'Last run failed'}
 						</p>
-						<span class="text-xs text-slate-500 tabular-nums">{formatTs(lastRun.created_at)} ({timeAgo(lastRun.created_at)})</span>
+						<span class="text-xs text-slate-500 tabular-nums">{formatTs(lastRun.started_at)} ({timeAgo(lastRun.started_at)})</span>
 					</div>
 					<div class="flex items-center gap-4 mt-2 text-sm text-slate-600 dark:text-slate-400">
 						<span>Campaigns collected: <strong>{parseCampaigns(lastRun.output ?? null)}</strong></span>
@@ -156,7 +156,7 @@
 
 						<!-- Timestamp -->
 						<span class="text-xs text-slate-400 dark:text-slate-500 tabular-nums shrink-0">
-							{formatTs(run.created_at)}
+							{formatTs(run.started_at)}
 						</span>
 					</div>
 				{/each}
