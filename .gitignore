@@ -6,6 +6,11 @@ dev_log.txt
 .claude/scheduled_tasks.lock
 .claude/settings.local.json
 
+# Agents local settings
+opencode.jsonc
+.gemini/
+.cursor/
+
 # Git worktrees
 .worktrees/
 
