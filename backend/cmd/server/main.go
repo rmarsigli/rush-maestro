@@ -21,6 +21,7 @@ import (
 	"github.com/rush-maestro/rush-maestro/internal/api"
 	"github.com/rush-maestro/rush-maestro/internal/config"
 	"github.com/rush-maestro/rush-maestro/internal/connector/googleads"
+	"github.com/rush-maestro/rush-maestro/internal/connector/llm"
 	"github.com/rush-maestro/rush-maestro/internal/domain"
 	mcpserver "github.com/rush-maestro/rush-maestro/internal/mcp"
 	mcpresources "github.com/rush-maestro/rush-maestro/internal/mcp/resources"
@@ -119,6 +120,7 @@ func main() {
 
 	mcpSrv := mcpserver.NewServer("rush-maestro", "1.0.0")
 	adsFactory := makeAdsFactory(tenantRepo, integrationRepo)
+	llmSelector := llm.NewProviderSelector(integrationRepo)
 	mcptools.RegisterContentTools(mcpSrv, mcptools.ContentRepos{
 		Tenants:   tenantRepo,
 		Posts:     postRepo,
@@ -127,6 +129,7 @@ func main() {
 		Alerts:    alertRepo,
 	})
 	mcptools.RegisterAdsTools(mcpSrv, adsFactory)
+	mcptools.RegisterLLMTools(mcpSrv, llmSelector)
 	mcptools.RegisterMonitoringTools(mcpSrv, mcptools.MonitoringRepos{
 		Metrics:    metricsRepo,
 		Alerts:     alertRepo,
@@ -164,6 +167,7 @@ func main() {
 	integrationsHandler := api.NewAdminIntegrationsHandler(integrationRepo)
 	oauthGoogleAds      := api.NewOAuthGoogleAdsHandler(integrationRepo, cfg.BaseURL)
 	mediaHandler        := api.NewMediaHandler(cfg.StoragePath, postRepo)
+	aiGenerateHandler   := api.NewAIGenerateHandler(llmSelector)
 
 	r.Route("/auth", func(r chi.Router) {
 		r.Use(middleware.AdminCORS(cfg.AdminCORSOrigins))
@@ -258,6 +262,12 @@ func main() {
 		r.Use(middleware.AuthenticateAdmin(jwtSvc))
 		r.Post("/api/media/{tenantId}/{postId}", mediaHandler.Upload)
 		r.Delete("/api/media/{tenantId}/{postId}", mediaHandler.Delete)
+	})
+
+	r.Route("/ai", func(r chi.Router) {
+		r.Use(middleware.AdminCORS(cfg.AdminCORSOrigins))
+		r.Use(middleware.AuthenticateAdmin(jwtSvc))
+		r.Post("/generate", aiGenerateHandler.Generate)
 	})
 
 	r.Route("/mcp", func(r chi.Router) {
