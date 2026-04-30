@@ -31,3 +31,6 @@ db/
 .project/*.db-wal
 .project/*.db-shm
 .project/events.jsonl
+
+# Compiled binaries
+backend/server
