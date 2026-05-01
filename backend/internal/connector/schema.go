@@ -54,4 +54,15 @@ type IntegrationSchema struct {
 	// TestConnection is called by POST /admin/integrations/{id}/test.
 	// Return nil on success.
 	TestConnection func(ctx context.Context, integration *domain.Integration) error `json:"-"`
+
+	// DiscoverResources is called after a successful OAuth connection.
+	// It fetches resources from the provider API and persists them via store.
+	DiscoverResources func(ctx context.Context, integration *domain.Integration, store ResourceStore) error `json:"-"`
+}
+
+// ResourceStore is the generic persistence interface for connector resources.
+type ResourceStore interface {
+	DeleteByTenantProvider(ctx context.Context, tenantID string, provider domain.IntegrationProvider) error
+	Upsert(ctx context.Context, res *domain.ConnectorResource) error
+	List(ctx context.Context, tenantID string, provider domain.IntegrationProvider, resourceType string) ([]*domain.ConnectorResource, error)
 }

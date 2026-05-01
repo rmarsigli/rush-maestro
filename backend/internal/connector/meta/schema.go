@@ -1,6 +1,8 @@
 package meta
 
 import (
+	"context"
+
 	"github.com/rush-maestro/rush-maestro/internal/connector"
 	"github.com/rush-maestro/rush-maestro/internal/domain"
 )
@@ -18,6 +20,39 @@ func init() {
 		},
 		OAuthFlow:      true,
 		OAuthStartPath: "/auth/meta/start",
+		DiscoverResources: func(ctx context.Context, ig *domain.Integration, store connector.ResourceStore) error {
+			if ig.RefreshToken == nil {
+				return nil
+			}
+			client := NewClient(*ig.RefreshToken)
+			pages, err := client.GetAccounts(ctx)
+			if err != nil {
+				return err
+			}
+			for _, tenantID := range ig.TenantIDs {
+				_ = store.DeleteByTenantProvider(ctx, tenantID, domain.ProviderMeta)
+				for _, page := range pages {
+					igAccount, _ := client.GetIGAccount(ctx, page.ID, page.AccessToken)
+					name := page.Name
+					res := &domain.ConnectorResource{
+						ID:            domain.NewID(),
+						TenantID:      tenantID,
+						IntegrationID: ig.ID,
+						Provider:      domain.ProviderMeta,
+						ResourceType:  "page",
+						ResourceID:    page.ID,
+						ResourceName:  &name,
+						Metadata:      map[string]any{},
+					}
+					if igAccount != nil {
+						res.Metadata["ig_user_id"] = igAccount.ID
+						res.Metadata["ig_username"] = igAccount.Username
+					}
+					_ = store.Upsert(ctx, res)
+				}
+			}
+			return nil
+		},
 	})
 }
 
