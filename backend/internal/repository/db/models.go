@@ -46,6 +46,19 @@ type Campaign struct {
 	UpdatedAt  time.Time          `json:"updated_at"`
 }
 
+type ConnectorResource struct {
+	ID            string          `json:"id"`
+	TenantID      string          `json:"tenant_id"`
+	IntegrationID string          `json:"integration_id"`
+	Provider      string          `json:"provider"`
+	ResourceType  string          `json:"resource_type"`
+	ResourceID    string          `json:"resource_id"`
+	ResourceName  *string         `json:"resource_name"`
+	Metadata      json.RawMessage `json:"metadata"`
+	CreatedAt     time.Time       `json:"created_at"`
+	UpdatedAt     time.Time       `json:"updated_at"`
+}
+
 type DailyMetric struct {
 	ID                    string         `json:"id"`
 	TenantID              string         `json:"tenant_id"`
@@ -151,7 +164,6 @@ type Tenant struct {
 	Tone           *string         `json:"tone"`
 	Instructions   *string         `json:"instructions"`
 	Hashtags       json.RawMessage `json:"hashtags"`
-	GoogleAdsID    *string         `json:"google_ads_id"`
 	AdsMonitoring  []byte          `json:"ads_monitoring"`
 	CreatedAt      time.Time       `json:"created_at"`
 	UpdatedAt      time.Time       `json:"updated_at"`
