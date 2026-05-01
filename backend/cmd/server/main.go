@@ -22,6 +22,7 @@ import (
 	"github.com/rush-maestro/rush-maestro/internal/config"
 	"github.com/rush-maestro/rush-maestro/internal/connector/googleads"
 	"github.com/rush-maestro/rush-maestro/internal/connector/llm"
+	"github.com/rush-maestro/rush-maestro/internal/connector/media"
 	"github.com/rush-maestro/rush-maestro/internal/domain"
 	mcpserver "github.com/rush-maestro/rush-maestro/internal/mcp"
 	mcpresources "github.com/rush-maestro/rush-maestro/internal/mcp/resources"
@@ -40,14 +41,15 @@ import (
 //go:embed all:ui/dist
 var uiFS embed.FS
 
-func makeAdsFactory(tenantRepo *repository.TenantRepository, integrationRepo *repository.IntegrationRepository) mcptools.AdsClientFactory {
+func makeAdsFactory(tenantRepo *repository.TenantRepository, integrationRepo *repository.IntegrationRepository, resourceRepo *repository.ConnectorResourceRepository) mcptools.AdsClientFactory {
 	return func(ctx context.Context, tenantID string) (*googleads.Client, *domain.Tenant, error) {
 		tenant, err := tenantRepo.GetByID(ctx, tenantID)
 		if err != nil {
 			return nil, nil, fmt.Errorf("tenant %q not found", tenantID)
 		}
-		if tenant.GoogleAdsID == nil || *tenant.GoogleAdsID == "" {
-			return nil, nil, fmt.Errorf("tenant %q has no google_ads_id", tenantID)
+		resources, err := resourceRepo.List(ctx, tenantID, domain.ProviderGoogleAds, "ad_account")
+		if err != nil || len(resources) == 0 {
+			return nil, nil, fmt.Errorf("tenant %q has no google_ads ad_account resource", tenantID)
 		}
 		integration, err := integrationRepo.GetForTenant(ctx, tenantID, "google_ads")
 		if err != nil {
@@ -57,7 +59,7 @@ func makeAdsFactory(tenantRepo *repository.TenantRepository, integrationRepo *re
 		if creds == nil {
 			return nil, nil, fmt.Errorf("Google Ads integration for tenant %q is missing credentials", tenantID)
 		}
-		return googleads.NewClient(*tenant.GoogleAdsID, *creds), tenant, nil
+		return googleads.NewClient(resources[0].ResourceID, *creds), tenant, nil
 	}
 }
 
@@ -115,11 +117,14 @@ func main() {
 	alertRepo          := repository.NewAlertRepository(pool)
 	agentRunRepo       := repository.NewAgentRunRepository(pool)
 	integrationRepo    := repository.NewIntegrationRepository(pool)
-	metricsRepo        := repository.NewMetricsRepository(pool)
+	metricsRepo           := repository.NewMetricsRepository(pool)
+	connectorResourceRepo := repository.NewConnectorResourceRepository(pool)
 	jwtSvc := domain.NewJWTService(cfg.JWTSecret)
 
+	mediaResolver := media.NewLocalResolver(cfg.BaseURL)
+
 	mcpSrv := mcpserver.NewServer("rush-maestro", "1.0.0")
-	adsFactory := makeAdsFactory(tenantRepo, integrationRepo)
+	adsFactory := makeAdsFactory(tenantRepo, integrationRepo, connectorResourceRepo)
 	llmSelector := llm.NewProviderSelector(integrationRepo)
 	mcptools.RegisterContentTools(mcpSrv, mcptools.ContentRepos{
 		Tenants:   tenantRepo,
@@ -166,6 +171,9 @@ func main() {
 	scheduleHandler     := api.NewAdminScheduleHandler(agentRunRepo)
 	integrationsHandler := api.NewAdminIntegrationsHandler(integrationRepo)
 	oauthGoogleAds      := api.NewOAuthGoogleAdsHandler(integrationRepo, cfg.BaseURL)
+	oauthMeta           := api.NewOAuthMetaHandler(integrationRepo, connectorResourceRepo, cfg.BaseURL)
+	metaPublish              := api.NewMetaPublishHandler(postRepo, integrationRepo, connectorResourceRepo, mediaResolver)
+	connectorResourcesHandler := api.NewConnectorResourcesHandler(connectorResourceRepo)
 	mediaHandler        := api.NewMediaHandler(cfg.StoragePath, postRepo)
 	aiGenerateHandler   := api.NewAIGenerateHandler(llmSelector)
 
@@ -183,6 +191,9 @@ func main() {
 		// Google Ads OAuth — redirect-based flow, no auth middleware
 		r.Get("/google-ads/start", oauthGoogleAds.Start)
 		r.Get("/google-ads/callback", oauthGoogleAds.Callback)
+		// Meta OAuth
+		r.Get("/meta/start", oauthMeta.Start)
+		r.Get("/meta/callback", oauthMeta.Callback)
 	})
 
 	r.Route("/admin", func(r chi.Router) {
@@ -252,6 +263,13 @@ func main() {
 
 			// schedule / agent-runs
 			r.Get("/schedule", scheduleHandler.Get)
+
+			// generic connector resources
+			r.Get("/connectors", connectorResourcesHandler.List)
+
+			// meta publishing
+			r.Get("/meta/accounts", metaPublish.ListAccounts)
+			r.With(middleware.RequirePermission("publish:post")).Post("/meta/publish", metaPublish.Publish)
 		})
 	})
 
